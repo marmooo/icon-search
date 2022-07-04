@@ -187,6 +187,21 @@ async function copyToClipboard() {
   obj.textContent = "Copy to clipboard";
 }
 
+function downloadSVG() {
+  const fileName = "icon.svg";
+  const svg = document.getElementById("selectedIcon").innerHTML;
+  const a = document.createElement("a");
+  a.setAttribute(
+    "href",
+    "data:text/plain;charset=utf-8," + encodeURIComponent(svg),
+  );
+  a.setAttribute("download", fileName);
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
 loadConfig();
 const collections = new Map();
 const searchTags = new Set();
@@ -205,6 +220,7 @@ document.getElementById("filter").onclick = filterResults;
 document.getElementById("filterText").onkeydown = (event) => {
   if (event.key == "Enter") filterResults();
 };
+document.getElementById("download").onclick = downloadSVG;
 document.getElementById("clipboard").onclick = copyToClipboard;
 document.getElementById("previewSize").onchange = (event) => {
   const previewSize = event.target.value.split("x")[0];
