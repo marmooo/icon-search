@@ -137,7 +137,7 @@ function uniqIds(svg) {
   });
 }
 
-function search() {
+function searchIcons() {
   const obj = document.getElementById("searchText");
   obj.blur();
   obj.focus();
@@ -152,9 +152,9 @@ initCollections();
 new bootstrap.Offcanvas(document.getElementById("details"));
 
 document.getElementById("toggleDarkMode").onclick = toggleDarkMode;
-document.getElementById("search").onclick = search;
+document.getElementById("search").onclick = searchIcons;
 document.getElementById("searchText").onkeydown = (event) => {
-  if (event.key == "Enter") search();
+  if (event.key == "Enter") searchIcons();
 };
 document.getElementById("previewSize").onchange = (event) => {
   const previewSize = event.target.value.split("x")[0];
