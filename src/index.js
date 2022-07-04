@@ -14,13 +14,12 @@ function toggleDarkMode() {
   }
 }
 
-function initSuggest(json) {
-  const obj = document.getElementById("tags");
-  json.forEach((tag) => {
-    tags.set(tag, true);
+function initSuggest(tags, datalist) {
+  tags.forEach((tag) => {
+    searchTags.add(tag);
     const option = document.createElement("option");
     option.textContent = tag;
-    obj.appendChild(option);
+    datalist.appendChild(option);
   });
 }
 
@@ -36,9 +35,10 @@ function initCollections() {
 }
 
 function initTags() {
+  const datalist = document.getElementById("searchTags");
   fetch("/icon-db/tags.json")
     .then((response) => response.json())
-    .then((json) => initSuggest(json));
+    .then((json) => initSuggest(json, datalist));
 }
 
 function showIconDetails(svg, icon) {
@@ -67,7 +67,7 @@ function showIconSetDetails(iconTags, iconSetName) {
   document.getElementById("author").textContent = iconSet.author;
 }
 
-function showIcon(icon, previewSize, domParser) {
+function getPreviewIcon(icon, previewSize, domParser) {
   // benchmark: https://www.measurethat.net/Benchmarks/Show/14659
   const obj = domParser.parseFromString(icon[0], "image/svg+xml");
   icon[0] = null;
@@ -85,7 +85,7 @@ function showIcon(icon, previewSize, domParser) {
 }
 
 function fetchIcons(tag) {
-  if (tags.has(tag) === false) {
+  if (searchTags.has(tag) === false) {
     document.getElementById("noTags").classList.remove("invisible");
     return;
   }
@@ -101,10 +101,11 @@ function fetchIcons(tag) {
   return fetch(`/icon-db/json/${tag}.json`)
     .then((response) => response.json())
     .then((icons) => {
+      searchResults = icons;
       const domParser = new DOMParser();
       const promises = icons.map((icon) => {
         return new Promise((resolve) => {
-          const svg = showIcon(icon, previewSize, domParser);
+          const svg = getPreviewIcon(icon, previewSize, domParser);
           div.appendChild(svg);
           uniqIds(svg);
           resolve(svg);
@@ -141,12 +142,43 @@ function searchIcons() {
   const obj = document.getElementById("searchText");
   obj.blur();
   obj.focus();
-  fetchIcons(obj.value);
+  fetchIcons(obj.value).then(() => {
+    filterTags = new Set();
+    searchResults.forEach((icon) => {
+      const tags = icon[1].split(",");
+      tags.forEach((tag) => {
+        filterTags.add(tag);
+      });
+    });
+    const datalist = document.getElementById("filterTags");
+    datalist.replaceChildren();
+    initSuggest(filterTags, datalist);
+  });
+}
+
+function filterIcons(tag, svgs) {
+  searchResults.forEach((icon, i) => {
+    if (icon[1].includes(tag)) {
+      svgs[i].classList.remove("d-none");
+    } else {
+      svgs[i].classList.add("d-none");
+    }
+  });
+}
+
+function filterResults() {
+  const svgs = [...document.getElementById("result").firstChild.children];
+  const obj = document.getElementById("filterText");
+  obj.blur();
+  obj.focus();
+  filterIcons(obj.value, svgs);
 }
 
 loadConfig();
-const tags = new Map();
 const collections = new Map();
+const searchTags = new Set();
+let filterTags = new Set();
+let searchResults = [];
 initTags();
 initCollections();
 new bootstrap.Offcanvas(document.getElementById("details"));
@@ -155,6 +187,10 @@ document.getElementById("toggleDarkMode").onclick = toggleDarkMode;
 document.getElementById("search").onclick = searchIcons;
 document.getElementById("searchText").onkeydown = (event) => {
   if (event.key == "Enter") searchIcons();
+};
+document.getElementById("filter").onclick = filterResults;
+document.getElementById("filterText").onkeydown = (event) => {
+  if (event.key == "Enter") filterResults();
 };
 document.getElementById("previewSize").onchange = (event) => {
   const previewSize = event.target.value.split("x")[0];
