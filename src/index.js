@@ -174,6 +174,19 @@ function filterResults() {
   filterIcons(obj.value, svgs);
 }
 
+function sleep(msec) {
+  return new Promise((resolve) => setTimeout(resolve, msec));
+}
+
+async function copyToClipboard() {
+  const obj = document.getElementById("clipboard");
+  const svg = document.getElementById("selectedIcon").innerHTML;
+  await navigator.clipboard.writeText(svg);
+  obj.textContent = "✅ copied!";
+  await sleep(2000);
+  obj.textContent = "Copy to clipboard";
+}
+
 loadConfig();
 const collections = new Map();
 const searchTags = new Set();
@@ -192,6 +205,7 @@ document.getElementById("filter").onclick = filterResults;
 document.getElementById("filterText").onkeydown = (event) => {
   if (event.key == "Enter") filterResults();
 };
+document.getElementById("clipboard").onclick = copyToClipboard;
 document.getElementById("previewSize").onchange = (event) => {
   const previewSize = event.target.value.split("x")[0];
   const result = document.getElementById("result");
