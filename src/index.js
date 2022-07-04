@@ -139,10 +139,9 @@ function uniqIds(svg) {
 
 function search() {
   const obj = document.getElementById("searchText");
-  const tag = obj.value.split(" ")[0];
   obj.blur();
   obj.focus();
-  fetchIcons(tag);
+  fetchIcons(obj.value);
 }
 
 loadConfig();
