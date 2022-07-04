@@ -67,6 +67,23 @@ function showIconSetDetails(iconTags, iconSetName) {
   document.getElementById("author").textContent = iconSet.author;
 }
 
+function showIcon(icon, previewSize, domParser) {
+  // benchmark: https://www.measurethat.net/Benchmarks/Show/14659
+  const obj = domParser.parseFromString(icon[0], "image/svg+xml");
+  icon[0] = null;
+  const svg = obj.documentElement;
+  svg.setAttribute("width", previewSize);
+  svg.setAttribute("height", previewSize);
+  svg.setAttribute("role", "button");
+  svg.setAttribute("data-bs-toggle", "offcanvas");
+  svg.setAttribute("data-bs-target", "#details");
+  svg.setAttribute("aria-controls", "details");
+  svg.onclick = () => {
+    showIconDetails(svg, icon);
+  };
+  return svg;
+}
+
 function fetchIcons(tag) {
   if (tags.has(tag) === false) {
     document.getElementById("noTags").classList.remove("invisible");
@@ -85,47 +102,35 @@ function fetchIcons(tag) {
     .then((response) => response.json())
     .then((icons) => {
       const domParser = new DOMParser();
-      icons.forEach((icon, i) => {
-        const svgText = icon[0];
-        // benchmark: https://www.measurethat.net/Benchmarks/Show/14659
-        const obj = domParser.parseFromString(svgText, "image/svg+xml");
-        const svg = obj.documentElement;
-        icons[i][0] = null;
-        svg.setAttribute("width", previewSize);
-        svg.setAttribute("height", previewSize);
-        svg.setAttribute("role", "button");
-        svg.setAttribute("data-bs-toggle", "offcanvas");
-        svg.setAttribute("data-bs-target", "#details");
-        svg.setAttribute("aria-controls", "details");
-        svg.onclick = () => {
-          showIconDetails(svg, icons[i]);
-        };
-        div.appendChild(svg);
+      const promises = icons.map((icon) => {
+        return new Promise((resolve) => {
+          const svg = showIcon(icon, previewSize, domParser);
+          div.appendChild(svg);
+          uniqIds(svg);
+        });
       });
+      return Promise.all(promises);
     });
 }
 
-function uniqIds() {
-  const result = document.getElementById("result");
-  [...result.firstChild.children].forEach((svg) => {
-    svg.querySelectorAll("[id]").forEach((idElement) => {
-      const id = idElement.id;
-      const uniqId = Math.random().toString(16).slice(2);
-      const idRegExp = new RegExp(`url\\(#${id}\\);?`, "g");
-      idElement.id = uniqId;
-      [...svg.getElementsByTagName("*")].forEach((e) => {
-        [...e.attributes].forEach((attr) => {
-          const name = attr.name;
-          const value = attr.value;
-          if (name == "xlink:href" && value.startsWith("#")) {
-            e.setAttribute(name, `#${uniqId}`);
-          } else {
-            const newValue = value.replace(idRegExp, `url(#${uniqId});`);
-            if (value != newValue) {
-              e.setAttribute(name, newValue);
-            }
+function uniqIds(svg) {
+  svg.querySelectorAll("[id]").forEach((idElement) => {
+    const id = idElement.id;
+    const uniqId = Math.random().toString(16).slice(2);
+    const idRegExp = new RegExp(`url\\(#${id}\\);?`, "g");
+    idElement.id = uniqId;
+    [...svg.getElementsByTagName("*")].forEach((e) => {
+      [...e.attributes].forEach((attr) => {
+        const name = attr.name;
+        const value = attr.value;
+        if (name == "xlink:href" && value.startsWith("#")) {
+          e.setAttribute(name, `#${uniqId}`);
+        } else {
+          const newValue = value.replace(idRegExp, `url(#${uniqId});`);
+          if (value != newValue) {
+            e.setAttribute(name, newValue);
           }
-        });
+        }
       });
     });
   });
@@ -136,9 +141,7 @@ function search() {
   const tag = obj.value.split(" ")[0];
   obj.blur();
   obj.focus();
-  fetchIcons(tag).then(() => {
-    uniqIds();
-  });
+  fetchIcons(tag);
 }
 
 loadConfig();
