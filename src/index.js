@@ -107,6 +107,7 @@ function fetchIcons(tag) {
           const svg = showIcon(icon, previewSize, domParser);
           div.appendChild(svg);
           uniqIds(svg);
+          resolve(svg);
         });
       });
       return Promise.all(promises);
