@@ -84,6 +84,30 @@ function getPreviewIcon(icon, previewSize, domParser) {
   return svg;
 }
 
+function draw(chunk, div, previewSize, domParser) {
+  buffer += chunk;
+  const endPos = buffer.lastIndexOf("\t]");
+  if (endPos < 0) return;
+  const block = buffer.slice(renderStartPos, endPos + 2);
+  renderStartPos = 0;
+  buffer = buffer.slice(endPos + 3);
+  console.log(block);
+  const icons = JSON.parse(`[${block}]`);
+  drawIcons(icons, div, previewSize, domParser);
+}
+
+function drawIcons(icons, div, previewSize, domParser) {
+  // https://www.measurethat.net/Benchmarks/Show/4223
+  searchResults = [...searchResults, ...icons];
+  icons.forEach((icon) => {
+    const svg = getPreviewIcon(icon, previewSize, domParser);
+    div.appendChild(svg);
+    uniqIds(svg);
+  });
+}
+
+let renderStartPos = 1;
+let buffer = "";
 function fetchIcons(tag) {
   if (searchTags.has(tag) === false) {
     document.getElementById("noTags").classList.remove("invisible");
@@ -97,21 +121,31 @@ function fetchIcons(tag) {
   const div = document.createElement("div");
   result.replaceChild(div, result.firstChild);
 
-  // TODO: ReadableStream
+  const domParser = new DOMParser();
+
   return fetch(`/icon-db/json/${tag}.json`)
-    .then((response) => response.json())
-    .then((icons) => {
-      searchResults = icons;
-      const domParser = new DOMParser();
-      const promises = icons.map((icon) => {
-        return new Promise((resolve) => {
-          const svg = getPreviewIcon(icon, previewSize, domParser);
-          div.appendChild(svg);
-          uniqIds(svg);
-          resolve(svg);
-        });
+    .then((response) => {
+      const reader = response.body.getReader();
+      const stream = new ReadableStream({
+        start(controller) {
+          function push() {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                controller.close();
+                renderStartPos = 1;
+                buffer = "";
+                return;
+              }
+              const chunk = new TextDecoder("utf-8").decode(value);
+              draw(chunk, div, previewSize, domParser);
+              controller.enqueue(value);
+              push();
+            });
+          }
+          push();
+        }
       });
-      return Promise.all(promises);
+      return new Response(stream, { headers: { "Content-Type": "application/json" }});
     });
 }
 
