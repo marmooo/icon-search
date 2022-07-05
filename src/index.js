@@ -91,7 +91,6 @@ function draw(chunk, div, previewSize, domParser) {
   const block = buffer.slice(renderStartPos, endPos + 2);
   renderStartPos = 0;
   buffer = buffer.slice(endPos + 3);
-  console.log(block);
   const icons = JSON.parse(`[${block}]`);
   drawIcons(icons, div, previewSize, domParser);
 }
