@@ -213,7 +213,7 @@ function sleep(msec) {
 
 async function copyToClipboard() {
   const obj = document.getElementById("clipboard");
-  const svg = document.getElementById("selectedIcon").innerHTML;
+  const svg = document.getElementById("selectedIcon").innerHTML.trim();
   await navigator.clipboard.writeText(svg);
   obj.textContent = "✅ copied!";
   await sleep(2000);
@@ -222,7 +222,7 @@ async function copyToClipboard() {
 
 function downloadSVG() {
   const fileName = "icon.svg";
-  const svg = document.getElementById("selectedIcon").innerHTML;
+  const svg = document.getElementById("selectedIcon").innerHTML.trim();
   const a = document.createElement("a");
   a.setAttribute(
     "href",
