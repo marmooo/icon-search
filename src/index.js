@@ -54,7 +54,7 @@ function showIconDetails(svg, icon) {
   selectedIcon.setAttribute("height", 128);
   selectedIcon.onclick = null;
   const selectedIconParent = document.getElementById("selectedIcon");
-  selectedIconParent.firstChild.replaceWith(selectedIcon);
+  selectedIconParent.firstElementChild.replaceWith(selectedIcon);
 }
 
 function showIconSetDetails(iconTags, iconSetName) {
