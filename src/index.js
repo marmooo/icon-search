@@ -159,7 +159,7 @@ function getNextIndex() {
 
 function setPagination(query) {
   const url = `?q=${query}&from=${renderFrom}&to=${renderTo}`;
-  history.pushState("", "", url);
+  history.replaceState(null, null, url);
   const prev = document.getElementById("prevIcons");
   const next = document.getElementById("nextIcons");
   const [prevFrom, prevTo] = getPrevIndex();
