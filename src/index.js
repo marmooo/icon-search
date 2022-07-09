@@ -70,7 +70,7 @@ function showIconSetDetails(iconTags, iconSetName) {
   document.getElementById("author").textContent = iconSet.author;
 }
 
-function getPreviewIcon(icon, previewSize, domParser) {
+function getPreviewIcon(icon, domParser) {
   // benchmark: https://www.measurethat.net/Benchmarks/Show/14659
   const obj = domParser.parseFromString(icon[0], "image/svg+xml");
   const svg = obj.documentElement;
@@ -86,7 +86,7 @@ function getPreviewIcon(icon, previewSize, domParser) {
   return svg;
 }
 
-function draw(chunk, div, previewSize, domParser) {
+function draw(chunk, div, domParser) {
   buffer += chunk;
   const endPos = buffer.lastIndexOf("\t]");
   if (endPos < 0) return;
@@ -94,10 +94,10 @@ function draw(chunk, div, previewSize, domParser) {
   renderStartPos = 0;
   buffer = buffer.slice(endPos + 3);
   const icons = JSON.parse(`[${block}]`);
-  drawIcons(icons, div, previewSize, domParser);
+  drawIcons(icons, div, domParser);
 }
 
-function drawIcons(icons, div, previewSize, domParser) {
+function drawIcons(icons, div, domParser) {
   const prevLength = searchResults.length;
   // https://www.measurethat.net/Benchmarks/Show/4223
   searchResults = [...searchResults, ...icons];
@@ -107,7 +107,7 @@ function drawIcons(icons, div, previewSize, domParser) {
       ? searchResults.slice(from)
       : searchResults.slice(from, renderTo);
     target.forEach((icon) => {
-      const svg = getPreviewIcon(icon, previewSize, domParser);
+      const svg = getPreviewIcon(icon, domParser);
       div.appendChild(svg);
       uniqIds(svg);
     });
@@ -115,8 +115,6 @@ function drawIcons(icons, div, previewSize, domParser) {
 }
 
 function redrawIcons(from, to) {
-  const previewSize =
-    document.getElementById("previewSize").value.split("x")[0];
   const result = document.getElementById("result");
   const div = document.createElement("div");
   result.replaceChild(div, result.firstChild);
@@ -125,7 +123,7 @@ function redrawIcons(from, to) {
 
   const target = searchResults.slice(from, to);
   target.forEach((icon) => {
-    const svg = getPreviewIcon(icon, previewSize, domParser);
+    const svg = getPreviewIcon(icon, domParser);
     div.appendChild(svg);
     uniqIds(svg);
   });
@@ -212,8 +210,6 @@ function initFilterTags() {
 let renderStartPos = 1;
 let buffer = "";
 function fetchIcons(tag) {
-  const previewSize =
-    document.getElementById("previewSize").value.split("x")[0];
   const result = document.getElementById("result");
   const div = document.createElement("div");
   result.replaceChild(div, result.firstChild);
@@ -239,7 +235,7 @@ function fetchIcons(tag) {
                 return;
               }
               const chunk = new TextDecoder("utf-8").decode(value);
-              draw(chunk, div, previewSize, domParser);
+              draw(chunk, div, domParser);
               controller.enqueue(value);
               push();
             });
@@ -346,6 +342,7 @@ let searchResults = [];
 let renderFrom = 0;
 let renderTo = 300;
 let renderNum = 300;
+let previewSize = 32;
 let prevSearchText = "";
 if (searchParams.from) renderFrom = parseInt(searchParams.from);
 if (searchParams.to) renderTo = parseInt(searchParams.to);
@@ -377,7 +374,7 @@ document.getElementById("filterText").onkeydown = (event) => {
 document.getElementById("download").onclick = downloadSVG;
 document.getElementById("clipboard").onclick = copyToClipboard;
 document.getElementById("previewSize").onchange = (event) => {
-  const previewSize = event.target.value.split("x")[0];
+  previewSize = event.target.value.split("x")[0];
   const result = document.getElementById("result");
   [...result.firstChild.children].forEach((svg) => {
     svg.setAttribute("width", previewSize);
