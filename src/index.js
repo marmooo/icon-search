@@ -21,7 +21,6 @@ function initSuggest(tags, datalist) {
     html += `<option>${tag}</option>`;
   });
   datalist.insertAdjacentHTML("beforeend", html);
-  searchTags = new Set(tags);
 }
 
 function initCollections() {
@@ -39,7 +38,10 @@ function initTags() {
   const datalist = document.getElementById("searchTags");
   return fetch("/icon-db/tags.json")
     .then((response) => response.json())
-    .then((json) => initSuggest(json, datalist));
+    .then((json) => {
+      searchTags = new Set(json);
+      initSuggest(json, datalist);
+    });
 }
 
 function showIconDetails(svg, icon) {
