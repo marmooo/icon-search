@@ -101,11 +101,11 @@ function drawIcons(icons, div, domParser) {
   const prevLength = searchResults.length;
   // https://www.measurethat.net/Benchmarks/Show/4223
   searchResults = [...searchResults, ...icons];
-  if (renderFrom <= prevLength + icons.length && prevLength < renderTo) {
-    const from = (renderFrom < prevLength) ? prevLength : renderFrom;
-    const target = (renderTo <= 0)
+  if (pagingFrom <= prevLength + icons.length && prevLength < pagingTo) {
+    const from = (pagingFrom < prevLength) ? prevLength : pagingFrom;
+    const target = (pagingTo <= 0)
       ? searchResults.slice(from)
-      : searchResults.slice(from, renderTo);
+      : searchResults.slice(from, pagingTo);
     target.forEach((icon) => {
       const svg = getPreviewIcon(icon, domParser);
       div.appendChild(svg);
@@ -130,9 +130,9 @@ function redrawIcons(from, to) {
 }
 
 function disablePagination(obj, query) {
-  renderFrom = 0;
-  renderTo = renderNum;
-  obj.href = `?q=${query}&from=${renderFrom}&to=${renderTo}`;
+  pagingFrom = 0;
+  pagingTo = pagingNum;
+  obj.href = `?q=${query}&from=${pagingFrom}&to=${pagingTo}`;
   obj.parentNode.classList.add("disabled");
   obj.setAttribute("tabindex", -1);
   obj.setAttribute("aria-disabled", true);
@@ -142,28 +142,28 @@ function disablePagination(obj, query) {
 }
 
 function getPrevIndex() {
-  if (renderFrom - renderNum < 0) {
-    return [0, renderNum];
+  if (pagingFrom - pagingNum < 0) {
+    return [0, pagingNum];
   } else {
-    return [renderFrom - renderNum, renderTo - renderNum];
+    return [pagingFrom - pagingNum, pagingTo - pagingNum];
   }
 }
 
 function getNextIndex() {
-  if (searchResults.length < renderTo) {
-    return [0, renderFrom - renderNum];
+  if (searchResults.length < pagingTo) {
+    return [0, pagingFrom - pagingNum];
   } else {
-    return [renderFrom + renderNum, renderTo + renderNum];
+    return [pagingFrom + pagingNum, pagingTo + pagingNum];
   }
 }
 
 function setPagination(query) {
-  const url = `?q=${query}&from=${renderFrom}&to=${renderTo}`;
+  const url = `?q=${query}&from=${pagingFrom}&to=${pagingTo}`;
   history.replaceState(null, null, url);
   const prev = document.getElementById("prevIcons");
   const next = document.getElementById("nextIcons");
   const [prevFrom, prevTo] = getPrevIndex();
-  if (renderFrom - renderNum < 0) {
+  if (pagingFrom - pagingNum < 0) {
     disablePagination(prev, query);
   } else {
     prev.href = `?q=${query}&from=${prevFrom}&to=${prevTo}`;
@@ -172,13 +172,13 @@ function setPagination(query) {
     prev.removeAttribute("aria-disabled");
     prev.onclick = (event) => {
       event.preventDefault();
-      [renderFrom, renderTo] = getPrevIndex();
-      redrawIcons(renderFrom, renderTo);
+      [pagingFrom, pagingTo] = getPrevIndex();
+      redrawIcons(pagingFrom, pagingTo);
       setPagination(query);
     };
   }
   const [nextFrom, nextTo] = getNextIndex();
-  if (searchResults.length < renderTo) {
+  if (searchResults.length < pagingTo) {
     disablePagination(next, query);
   } else {
     next.href = `?q=${query}&from=${nextFrom}&to=${nextTo}`;
@@ -187,8 +187,8 @@ function setPagination(query) {
     next.removeAttribute("aria-disabled");
     next.onclick = (event) => {
       event.preventDefault();
-      [renderFrom, renderTo] = getNextIndex();
-      redrawIcons(renderFrom, renderTo);
+      [pagingFrom, pagingTo] = getNextIndex();
+      redrawIcons(pagingFrom, pagingTo);
       setPagination(query);
     };
   }
@@ -339,13 +339,13 @@ const collections = new Map();
 let searchTags = new Set();
 let filterTags = new Set();
 let searchResults = [];
-let renderFrom = 0;
-let renderTo = 300;
-let renderNum = 300;
+let pagingFrom = 0;
+let pagingTo = 300;
+let pagingNum = 300;
 let previewSize = 32;
 let prevSearchText = "";
-if (searchParams.from) renderFrom = parseInt(searchParams.from);
-if (searchParams.to) renderTo = parseInt(searchParams.to);
+if (searchParams.from) pagingFrom = parseInt(searchParams.from);
+if (searchParams.to) pagingTo = parseInt(searchParams.to);
 new bootstrap.Offcanvas(document.getElementById("details"));
 Promise.all([
   initSearchTags(),
@@ -373,6 +373,10 @@ document.getElementById("filterText").onkeydown = (event) => {
 };
 document.getElementById("download").onclick = downloadSVG;
 document.getElementById("clipboard").onclick = copyToClipboard;
+document.getElementById("pagingNum").onchange = (event) => {
+  pagingNum = parseInt(event.target.value);
+  if (pagingFrom == 0) pagingTo = pagingNum;
+};
 document.getElementById("previewSize").onchange = (event) => {
   previewSize = event.target.value.split("x")[0];
   const result = document.getElementById("result");
