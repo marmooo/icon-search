@@ -34,7 +34,7 @@ function initCollections() {
     });
 }
 
-function initTags() {
+function initSearchTags() {
   const datalist = document.getElementById("searchTags");
   return fetch("/icon-db/tags.json")
     .then((response) => response.json())
@@ -196,6 +196,19 @@ function setPagination(query) {
   }
 }
 
+function initFilterTags() {
+  filterTags = new Set();
+  searchResults.forEach((icon) => {
+    const tags = icon[1].split(",");
+    tags.forEach((tag) => {
+      filterTags.add(tag);
+    });
+  });
+  const datalist = document.getElementById("filterTags");
+  datalist.replaceChildren();
+  initSuggest(filterTags, datalist);
+}
+
 let renderStartPos = 1;
 let buffer = "";
 function fetchIcons(tag) {
@@ -222,6 +235,7 @@ function fetchIcons(tag) {
                   "d-none",
                 );
                 setPagination(tag);
+                initFilterTags();
                 return;
               }
               const chunk = new TextDecoder("utf-8").decode(value);
@@ -232,9 +246,6 @@ function fetchIcons(tag) {
           }
           push();
         },
-      });
-      return new Response(stream, {
-        headers: { "Content-Type": "application/json" },
       });
     });
 }
@@ -275,18 +286,7 @@ function searchIcons() {
   }
   document.getElementById("noTags").classList.add("invisible");
 
-  fetchIcons(tag).then(() => {
-    filterTags = new Set();
-    searchResults.forEach((icon) => {
-      const tags = icon[1].split(",");
-      tags.forEach((tag) => {
-        filterTags.add(tag);
-      });
-    });
-    const datalist = document.getElementById("filterTags");
-    datalist.replaceChildren();
-    initSuggest(filterTags, datalist);
-  });
+  fetchIcons(tag);
 }
 
 function filterIcons(tag, svgs) {
@@ -351,7 +351,7 @@ if (searchParams.from) renderFrom = parseInt(searchParams.from);
 if (searchParams.to) renderTo = parseInt(searchParams.to);
 new bootstrap.Offcanvas(document.getElementById("details"));
 Promise.all([
-  initTags(),
+  initSearchTags(),
   initCollections(),
 ]).then(() => {
   if (searchParams.q) {
