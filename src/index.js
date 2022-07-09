@@ -353,6 +353,7 @@ Promise.all([
   initCollections(),
 ]).then(() => {
   if (searchParams.q) {
+    prevSearchText = searchParams.q;
     document.getElementById("searchText").value = searchParams.q;
     searchIcons();
   }
@@ -361,8 +362,11 @@ Promise.all([
 document.getElementById("toggleDarkMode").onclick = toggleDarkMode;
 document.getElementById("search").onclick = searchIcons;
 document.getElementById("searchText").onkeydown = (event) => {
-  if (prevSearchText != event.target.value) searchResults = [];
-  if (event.key == "Enter") searchIcons();
+  if (event.key == "Enter") {
+    if (prevSearchText == event.target.value) return;
+    searchResults = [];
+    searchIcons();
+  }
 };
 document.getElementById("filter").onclick = filterResults;
 document.getElementById("filterText").onkeydown = (event) => {
