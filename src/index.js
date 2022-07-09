@@ -24,7 +24,7 @@ function initSuggest(tags, datalist) {
 }
 
 function initCollections() {
-  fetch("/icon-db/collections.json")
+  return fetch("/icon-db/collections.json")
     .then((response) => response.json())
     .then((json) => {
       json.forEach((iconSet) => {
@@ -36,7 +36,7 @@ function initCollections() {
 
 function initTags() {
   const datalist = document.getElementById("searchTags");
-  fetch("/icon-db/tags.json")
+  return fetch("/icon-db/tags.json")
     .then((response) => response.json())
     .then((json) => initSuggest(json, datalist));
 }
@@ -70,7 +70,6 @@ function showIconSetDetails(iconTags, iconSetName) {
 function getPreviewIcon(icon, previewSize, domParser) {
   // benchmark: https://www.measurethat.net/Benchmarks/Show/14659
   const obj = domParser.parseFromString(icon[0], "image/svg+xml");
-  icon[0] = null;
   const svg = obj.documentElement;
   svg.setAttribute("width", previewSize);
   svg.setAttribute("height", previewSize);
@@ -96,18 +95,108 @@ function draw(chunk, div, previewSize, domParser) {
 }
 
 function drawIcons(icons, div, previewSize, domParser) {
+  const prevLength = searchResults.length;
   // https://www.measurethat.net/Benchmarks/Show/4223
   searchResults = [...searchResults, ...icons];
-  icons.forEach((icon) => {
+  if (renderFrom <= prevLength + icons.length && prevLength < renderTo) {
+    const from = (renderFrom < prevLength) ? prevLength : renderFrom;
+    const target = (renderTo <= 0)
+      ? searchResults.slice(from)
+      : searchResults.slice(from, renderTo);
+    target.forEach((icon) => {
+      const svg = getPreviewIcon(icon, previewSize, domParser);
+      div.appendChild(svg);
+      uniqIds(svg);
+    });
+  }
+}
+
+function redrawIcons(from, to) {
+  const previewSize =
+    document.getElementById("previewSize").value.split("x")[0];
+  const result = document.getElementById("result");
+  const div = document.createElement("div");
+  result.replaceChild(div, result.firstChild);
+
+  const domParser = new DOMParser();
+
+  const target = searchResults.slice(from, to);
+  target.forEach((icon) => {
     const svg = getPreviewIcon(icon, previewSize, domParser);
     div.appendChild(svg);
     uniqIds(svg);
   });
 }
 
+function disablePagination(obj, query) {
+  renderFrom = 0;
+  renderTo = renderNum;
+  obj.href = `?q=${query}&from=${renderFrom}&to=${renderTo}`;
+  obj.parentNode.classList.add("disabled");
+  obj.setAttribute("tabindex", -1);
+  obj.setAttribute("aria-disabled", true);
+  obj.onclick = (event) => {
+    event.preventDefault();
+  };
+}
+
+function getPrevIndex() {
+  if (renderFrom - renderNum < 0) {
+    return [0, renderNum];
+  } else {
+    return [renderFrom - renderNum, renderTo - renderNum];
+  }
+}
+
+function getNextIndex() {
+  if (searchResults.length < renderTo) {
+    return [0, renderFrom - renderNum];
+  } else {
+    return [renderFrom + renderNum, renderTo + renderNum];
+  }
+}
+
+function setPagination(query) {
+  const url = `?q=${query}&from=${renderFrom}&to=${renderTo}`;
+  history.pushState("", "", url);
+  const prev = document.getElementById("prevIcons");
+  const next = document.getElementById("nextIcons");
+  const [prevFrom, prevTo] = getPrevIndex();
+  if (renderFrom - renderNum < 0) {
+    disablePagination(prev, query);
+  } else {
+    prev.href = `?q=${query}&from=${prevFrom}&to=${prevTo}`;
+    prev.parentNode.classList.remove("disabled");
+    prev.removeAttribute("tabindex");
+    prev.removeAttribute("aria-disabled");
+    prev.onclick = (event) => {
+      event.preventDefault();
+      [renderFrom, renderTo] = getPrevIndex();
+      redrawIcons(renderFrom, renderTo);
+      setPagination(query);
+    };
+  }
+  const [nextFrom, nextTo] = getNextIndex();
+  if (searchResults.length < renderTo) {
+    disablePagination(next, query);
+  } else {
+    next.href = `?q=${query}&from=${nextFrom}&to=${nextTo}`;
+    next.parentNode.classList.remove("disabled");
+    next.removeAttribute("tabindex");
+    next.removeAttribute("aria-disabled");
+    next.onclick = (event) => {
+      event.preventDefault();
+      [renderFrom, renderTo] = getNextIndex();
+      redrawIcons(renderFrom, renderTo);
+      setPagination(query);
+    };
+  }
+}
+
 let renderStartPos = 1;
 let buffer = "";
 function fetchIcons(tag) {
+  document.getElementById("pagination").classList.add("d-none");
   if (searchTags.has(tag) === false) {
     document.getElementById("noTags").classList.remove("invisible");
     return;
@@ -133,6 +222,10 @@ function fetchIcons(tag) {
                 controller.close();
                 renderStartPos = 1;
                 buffer = "";
+                document.getElementById("pagination").classList.remove(
+                  "d-none",
+                );
+                setPagination(tag);
                 return;
               }
               const chunk = new TextDecoder("utf-8").decode(value);
@@ -142,9 +235,11 @@ function fetchIcons(tag) {
             });
           }
           push();
-        }
+        },
       });
-      return new Response(stream, { headers: { "Content-Type": "application/json" }});
+      return new Response(stream, {
+        headers: { "Content-Type": "application/json" },
+      });
     });
 }
 
@@ -236,13 +331,28 @@ function downloadSVG() {
 }
 
 loadConfig();
+const searchParams = new Proxy(new URLSearchParams(location.search), {
+  get: (params, prop) => params.get(prop),
+});
 const collections = new Map();
 const searchTags = new Set();
 let filterTags = new Set();
 let searchResults = [];
-initTags();
-initCollections();
+let renderFrom = 0;
+let renderTo = 300;
+let renderNum = 300;
+if (searchParams.from) renderFrom = parseInt(searchParams.from);
+if (searchParams.to) renderTo = parseInt(searchParams.to);
 new bootstrap.Offcanvas(document.getElementById("details"));
+Promise.all([
+  initTags(),
+  initCollections(),
+]).then(() => {
+  if (searchParams.q) {
+    document.getElementById("searchText").value = searchParams.q;
+    searchIcons();
+  }
+});
 
 document.getElementById("toggleDarkMode").onclick = toggleDarkMode;
 document.getElementById("search").onclick = searchIcons;
