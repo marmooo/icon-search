@@ -197,13 +197,6 @@ function setPagination(query) {
 let renderStartPos = 1;
 let buffer = "";
 function fetchIcons(tag) {
-  document.getElementById("pagination").classList.add("d-none");
-  if (searchTags.has(tag) === false) {
-    document.getElementById("noTags").classList.remove("invisible");
-    return;
-  }
-  document.getElementById("noTags").classList.add("invisible");
-
   const previewSize =
     document.getElementById("previewSize").value.split("x")[0];
   const result = document.getElementById("result");
@@ -271,7 +264,16 @@ function searchIcons() {
   const obj = document.getElementById("searchText");
   obj.blur();
   obj.focus();
-  fetchIcons(obj.value).then(() => {
+
+  const tag = obj.value;
+  document.getElementById("pagination").classList.add("d-none");
+  if (!searchTags.has(tag)) {
+    document.getElementById("noTags").classList.remove("invisible");
+    return;
+  }
+  document.getElementById("noTags").classList.add("invisible");
+
+  fetchIcons(tag).then(() => {
     filterTags = new Set();
     searchResults.forEach((icon) => {
       const tags = icon[1].split(",");
