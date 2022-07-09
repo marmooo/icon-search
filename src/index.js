@@ -15,12 +15,13 @@ function toggleDarkMode() {
 }
 
 function initSuggest(tags, datalist) {
+  // https://www.measurethat.net/Benchmarks/Show/11468/
+  let html = "";
   tags.forEach((tag) => {
     searchTags.add(tag);
-    const option = document.createElement("option");
-    option.textContent = tag;
-    datalist.appendChild(option);
+    html += `<option>${tag}</option>`;
   });
+  datalist.insertAdjacentHTML("beforeend", html);
 }
 
 function initCollections() {
