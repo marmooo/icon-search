@@ -342,6 +342,7 @@ let searchResults = [];
 let renderFrom = 0;
 let renderTo = 300;
 let renderNum = 300;
+let prevSearchText = "";
 if (searchParams.from) renderFrom = parseInt(searchParams.from);
 if (searchParams.to) renderTo = parseInt(searchParams.to);
 new bootstrap.Offcanvas(document.getElementById("details"));
@@ -358,6 +359,7 @@ Promise.all([
 document.getElementById("toggleDarkMode").onclick = toggleDarkMode;
 document.getElementById("search").onclick = searchIcons;
 document.getElementById("searchText").onkeydown = (event) => {
+  if (prevSearchText != event.target.value) searchResults = [];
   if (event.key == "Enter") searchIcons();
 };
 document.getElementById("filter").onclick = filterResults;
