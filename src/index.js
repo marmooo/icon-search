@@ -18,10 +18,10 @@ function initSuggest(tags, datalist) {
   // https://www.measurethat.net/Benchmarks/Show/11468/
   let html = "";
   tags.forEach((tag) => {
-    searchTags.add(tag);
     html += `<option>${tag}</option>`;
   });
   datalist.insertAdjacentHTML("beforeend", html);
+  searchTags = new Set(tags);
 }
 
 function initCollections() {
@@ -338,7 +338,7 @@ const searchParams = new Proxy(new URLSearchParams(location.search), {
   get: (params, prop) => params.get(prop),
 });
 const collections = new Map();
-const searchTags = new Set();
+let searchTags = new Set();
 let filterTags = new Set();
 let searchResults = [];
 let renderFrom = 0;
