@@ -141,6 +141,20 @@ function disablePagination(obj, query) {
   };
 }
 
+function enablePagination(obj, query, getIndexFunc) {
+  const [from, to] = getIndexFunc();
+  obj.href = `?q=${query}&from=${from}&to=${to}`;
+  obj.parentNode.classList.remove("disabled");
+  obj.removeAttribute("tabindex");
+  obj.removeAttribute("aria-disabled");
+  obj.onclick = (event) => {
+    event.preventDefault();
+    [pagingFrom, pagingTo] = getIndexFunc();
+    redrawIcons(pagingFrom, pagingTo);
+    setPagination(query);
+  };
+}
+
 function getPrevIndex() {
   if (pagingFrom - pagingNum < 0) {
     return [0, pagingNum];
@@ -162,35 +176,15 @@ function setPagination(query) {
   history.replaceState(null, null, url);
   const prev = document.getElementById("prevIcons");
   const next = document.getElementById("nextIcons");
-  const [prevFrom, prevTo] = getPrevIndex();
   if (pagingFrom - pagingNum < 0) {
     disablePagination(prev, query);
   } else {
-    prev.href = `?q=${query}&from=${prevFrom}&to=${prevTo}`;
-    prev.parentNode.classList.remove("disabled");
-    prev.removeAttribute("tabindex");
-    prev.removeAttribute("aria-disabled");
-    prev.onclick = (event) => {
-      event.preventDefault();
-      [pagingFrom, pagingTo] = getPrevIndex();
-      redrawIcons(pagingFrom, pagingTo);
-      setPagination(query);
-    };
+    enablePagination(prev, query, getPrevIndex);
   }
-  const [nextFrom, nextTo] = getNextIndex();
   if (searchResults.length < pagingTo) {
     disablePagination(next, query);
   } else {
-    next.href = `?q=${query}&from=${nextFrom}&to=${nextTo}`;
-    next.parentNode.classList.remove("disabled");
-    next.removeAttribute("tabindex");
-    next.removeAttribute("aria-disabled");
-    next.onclick = (event) => {
-      event.preventDefault();
-      [pagingFrom, pagingTo] = getNextIndex();
-      redrawIcons(pagingFrom, pagingTo);
-      setPagination(query);
-    };
+    enablePagination(next, query, getNextIndex);
   }
 }
 
