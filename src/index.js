@@ -70,7 +70,7 @@ function showIconSetDetails(iconTags, iconSetName) {
   document.getElementById("author").textContent = iconSet.author;
 }
 
-function getPreviewIcon(icon, domParser) {
+function getPreviewIcon(icon) {
   // benchmark: https://www.measurethat.net/Benchmarks/Show/14659
   const obj = domParser.parseFromString(icon[0], "image/svg+xml");
   const svg = obj.documentElement;
@@ -86,7 +86,7 @@ function getPreviewIcon(icon, domParser) {
   return svg;
 }
 
-function drawChunk(chunk, div, domParser) {
+function drawChunk(chunk, div) {
   buffer += chunk;
   const endPos = buffer.lastIndexOf("\t]");
   if (endPos < 0) return;
@@ -94,10 +94,10 @@ function drawChunk(chunk, div, domParser) {
   renderStartPos = 0;
   buffer = buffer.slice(endPos + 3);
   const icons = JSON.parse(`[${block}]`);
-  drawIcons(icons, div, domParser);
+  drawIcons(icons, div);
 }
 
-function drawIcons(icons, div, domParser) {
+function drawIcons(icons, div) {
   const prevLength = searchResults.length;
   // https://www.measurethat.net/Benchmarks/Show/4223
   searchResults = [...searchResults, ...icons];
@@ -107,7 +107,7 @@ function drawIcons(icons, div, domParser) {
       ? searchResults.slice(from)
       : searchResults.slice(from, pagingTo);
     target.forEach((icon) => {
-      const svg = getPreviewIcon(icon, domParser);
+      const svg = getPreviewIcon(icon);
       div.appendChild(svg);
       uniqIds(svg);
     });
@@ -120,11 +120,9 @@ function redrawIcons(from, to) {
   const div = document.createElement("div");
   result.replaceChild(div, result.firstElementChild);
 
-  const domParser = new DOMParser();
-
   const target = searchResults.slice(from, to);
   target.forEach((icon) => {
-    const svg = getPreviewIcon(icon, domParser);
+    const svg = getPreviewIcon(icon);
     div.appendChild(svg);
     uniqIds(svg);
   });
@@ -201,7 +199,7 @@ function initFilterTags() {
   initSuggest(filterTags, datalist);
 }
 
-function iconReader(reader, controller, tag, div, domParser) {
+function iconReader(reader, controller, tag, div) {
   return reader.read().then(({ done, value }) => {
     if (done) {
       controller.close();
@@ -214,9 +212,9 @@ function iconReader(reader, controller, tag, div, domParser) {
       return;
     }
     const chunk = new TextDecoder("utf-8").decode(value);
-    drawChunk(chunk, div, domParser);
+    drawChunk(chunk, div);
     controller.enqueue(value);
-    iconReader(reader, controller, tag, div, domParser);
+    iconReader(reader, controller, tag, div);
   });
 }
 
@@ -226,14 +224,13 @@ function fetchIcons(tag) {
   const result = document.getElementById("result");
   const div = document.createElement("div");
   result.replaceChild(div, result.firstElementChild);
-  const domParser = new DOMParser();
 
   return fetch(`/icon-db/json/${tag}.json`)
     .then((response) => {
       const reader = response.body.getReader();
       new ReadableStream({
         start(controller) {
-          iconReader(reader, controller, tag, div, domParser);
+          iconReader(reader, controller, tag, div);
         },
       });
     });
@@ -327,6 +324,7 @@ function downloadSVG() {
 }
 
 loadConfig();
+const domParser = new DOMParser();
 const searchParams = new Proxy(new URLSearchParams(location.search), {
   get: (params, prop) => params.get(prop),
 });
