@@ -132,8 +132,6 @@ function redrawIcons(from, to) {
 }
 
 function disablePagination(obj, query) {
-  pagingFrom = 0;
-  pagingTo = pagingNum;
   obj.href = `?q=${query}&from=${pagingFrom}&to=${pagingTo}`;
   obj.parentNode.classList.add("disabled");
   obj.setAttribute("tabindex", -1);
@@ -167,7 +165,7 @@ function getPrevIndex() {
 
 function getNextIndex() {
   if (searchResults.length < pagingTo) {
-    return [0, pagingFrom - pagingNum];
+    return [0, pagingNum];
   } else {
     return [pagingFrom + pagingNum, pagingTo + pagingNum];
   }
