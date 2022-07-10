@@ -118,7 +118,7 @@ function redrawIcons(from, to) {
   document.getElementById("loading").classList.remove("d-none");
   const result = document.getElementById("result");
   const div = document.createElement("div");
-  result.replaceChild(div, result.firstChild);
+  result.replaceChild(div, result.firstElementChild);
 
   const domParser = new DOMParser();
 
@@ -227,7 +227,7 @@ let buffer = "";
 function fetchIcons(tag) {
   const result = document.getElementById("result");
   const div = document.createElement("div");
-  result.replaceChild(div, result.firstChild);
+  result.replaceChild(div, result.firstElementChild);
   const domParser = new DOMParser();
 
   return fetch(`/icon-db/json/${tag}.json`)
@@ -292,7 +292,8 @@ function filterIcons(tag, svgs) {
 }
 
 function filterResults() {
-  const svgs = [...document.getElementById("result").firstChild.children];
+  const result = document.getElementById("result");
+  const svgs = [...result.firstElementChild.children];
   const obj = document.getElementById("filterText");
   obj.blur();
   obj.focus();
@@ -378,7 +379,7 @@ document.getElementById("pagingNum").onchange = (event) => {
 document.getElementById("previewSize").onchange = (event) => {
   previewSize = event.target.value.split("x")[0];
   const result = document.getElementById("result");
-  [...result.firstChild.children].forEach((svg) => {
+  [...result.firstElementChild.children].forEach((svg) => {
     svg.setAttribute("width", previewSize);
     svg.setAttribute("height", previewSize);
   });
