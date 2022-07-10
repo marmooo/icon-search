@@ -115,6 +115,7 @@ function drawIcons(icons, div, domParser) {
 }
 
 function redrawIcons(from, to) {
+  document.getElementById("loading").classList.remove("d-none");
   const result = document.getElementById("result");
   const div = document.createElement("div");
   result.replaceChild(div, result.firstChild);
@@ -127,6 +128,7 @@ function redrawIcons(from, to) {
     div.appendChild(svg);
     uniqIds(svg);
   });
+  document.getElementById("loading").classList.add("d-none");
 }
 
 function disablePagination(obj, query) {
@@ -207,6 +209,7 @@ function iconReader(reader, controller, tag, div, domParser) {
       controller.close();
       renderStartPos = 1;
       buffer = "";
+      document.getElementById("loading").classList.add("d-none");
       document.getElementById("pagination").classList.remove("d-none");
       setPagination(tag);
       initFilterTags();
@@ -267,6 +270,7 @@ function searchIcons() {
   obj.focus();
 
   const tag = obj.value;
+  document.getElementById("loading").classList.remove("d-none");
   document.getElementById("pagination").classList.add("d-none");
   if (!searchTags.has(tag)) {
     document.getElementById("noTags").classList.remove("invisible");
