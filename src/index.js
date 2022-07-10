@@ -355,6 +355,8 @@ document.getElementById("search").onclick = searchIcons;
 document.getElementById("searchText").onkeydown = (event) => {
   if (event.key == "Enter") {
     if (prevSearchText == event.target.value) return;
+    pagingFrom = 0;
+    pagingTo = pagingNum;
     searchResults = [];
     searchIcons();
   }
