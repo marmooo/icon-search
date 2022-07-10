@@ -207,13 +207,30 @@ function initFilterTags() {
   initSuggest(filterTags, datalist);
 }
 
+function iconReader(reader, controller, tag, div, domParser) {
+  return reader.read().then(({ done, value }) => {
+    if (done) {
+      controller.close();
+      renderStartPos = 1;
+      buffer = "";
+      document.getElementById("pagination").classList.remove("d-none");
+      setPagination(tag);
+      initFilterTags();
+      return;
+    }
+    const chunk = new TextDecoder("utf-8").decode(value);
+    draw(chunk, div, domParser);
+    controller.enqueue(value);
+    iconReader(reader, controller, tag, div, domParser);
+  });
+}
+
 let renderStartPos = 1;
 let buffer = "";
 function fetchIcons(tag) {
   const result = document.getElementById("result");
   const div = document.createElement("div");
   result.replaceChild(div, result.firstChild);
-
   const domParser = new DOMParser();
 
   return fetch(`/icon-db/json/${tag}.json`)
@@ -221,26 +238,7 @@ function fetchIcons(tag) {
       const reader = response.body.getReader();
       new ReadableStream({
         start(controller) {
-          function push() {
-            reader.read().then(({ done, value }) => {
-              if (done) {
-                controller.close();
-                renderStartPos = 1;
-                buffer = "";
-                document.getElementById("pagination").classList.remove(
-                  "d-none",
-                );
-                setPagination(tag);
-                initFilterTags();
-                return;
-              }
-              const chunk = new TextDecoder("utf-8").decode(value);
-              draw(chunk, div, domParser);
-              controller.enqueue(value);
-              push();
-            });
-          }
-          push();
+          iconReader(reader, controller, tag, div, domParser);
         },
       });
     });
