@@ -86,7 +86,7 @@ function getPreviewIcon(icon, domParser) {
   return svg;
 }
 
-function draw(chunk, div, domParser) {
+function drawChunk(chunk, div, domParser) {
   buffer += chunk;
   const endPos = buffer.lastIndexOf("\t]");
   if (endPos < 0) return;
@@ -213,7 +213,7 @@ function iconReader(reader, controller, tag, div, domParser) {
       return;
     }
     const chunk = new TextDecoder("utf-8").decode(value);
-    draw(chunk, div, domParser);
+    drawChunk(chunk, div, domParser);
     controller.enqueue(value);
     iconReader(reader, controller, tag, div, domParser);
   });
