@@ -45,9 +45,16 @@ function initSearchTags() {
     });
 }
 
+function getSelectedIconPos(svg) {
+  const icons = [...document.getElementById("result").firstElementChild.children];
+  console.log(icons.indexOf(svg));
+  return icons.indexOf(svg);
+}
+
 function showIconDetails(svg, icon) {
   const iconTags = icon[1];
   const iconSetName = icon[2];
+  selectedIconPos = getSelectedIconPos(svg);
   showIconSetDetails(iconTags, iconSetName);
   const selectedIcon = svg.cloneNode(true);
   selectedIcon.removeAttribute("role");
@@ -300,9 +307,14 @@ function sleep(msec) {
   return new Promise((resolve) => setTimeout(resolve, msec));
 }
 
+function getOriginalSVG(svg) {
+  const pos = pagingFrom + selectedIconPos;
+  return searchResults[pos][0];
+}
+
 async function copyToClipboard() {
   const obj = document.getElementById("clipboard");
-  const svg = document.getElementById("selectedIcon").innerHTML.trim();
+  const svg = getOriginalSVG();
   await navigator.clipboard.writeText(svg);
   obj.textContent = "✅ copied!";
   await sleep(2000);
@@ -311,13 +323,10 @@ async function copyToClipboard() {
 
 function downloadSVG() {
   const fileName = "icon.svg";
-  const svg = document.getElementById("selectedIcon").innerHTML.trim();
+  const svg = getOriginalSVG();
   const a = document.createElement("a");
-  a.setAttribute(
-    "href",
-    "data:text/plain;charset=utf-8," + encodeURIComponent(svg),
-  );
-  a.setAttribute("download", fileName);
+  a.href = "data:text/plain;charset=utf-8," + encodeURIComponent(svg);
+  a.download = fileName;
   a.style.display = "none";
   document.body.appendChild(a);
   a.click();
@@ -338,6 +347,7 @@ let pagingTo = 300;
 let pagingNum = 300;
 let previewSize = 32;
 let prevSearchText = "";
+let selectedIconPos;
 if (searchParams.from) pagingFrom = parseInt(searchParams.from);
 if (searchParams.to) pagingTo = parseInt(searchParams.to);
 new bootstrap.Offcanvas(document.getElementById("details"));
