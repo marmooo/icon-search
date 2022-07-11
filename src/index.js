@@ -15,12 +15,13 @@ function toggleDarkMode() {
 }
 
 function initSuggest(tags, datalist) {
-  // https://www.measurethat.net/Benchmarks/Show/11468/
+  // https://www.measurethat.net/Benchmarks/Show/14659
   let html = "";
   tags.forEach((tag) => {
     html += `<option>${tag}</option>`;
   });
-  datalist.insertAdjacentHTML("beforeend", html);
+  const doc = domParser.parseFromString(html, "text/html");
+  datalist.replaceChildren(...doc.body.childNodes);
 }
 
 function initCollections() {
@@ -71,7 +72,7 @@ function showIconSetDetails(iconTags, iconSetName) {
 }
 
 function getPreviewIcon(icon) {
-  // benchmark: https://www.measurethat.net/Benchmarks/Show/14659
+  // https://www.measurethat.net/Benchmarks/Show/14659
   const obj = domParser.parseFromString(icon[0], "image/svg+xml");
   const svg = obj.documentElement;
   svg.setAttribute("width", previewSize);
