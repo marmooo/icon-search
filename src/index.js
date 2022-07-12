@@ -49,7 +49,6 @@ function getSelectedIconPos(svg) {
   const icons = [
     ...document.getElementById("result").firstElementChild.children,
   ];
-  console.log(icons.indexOf(svg));
   return icons.indexOf(svg);
 }
 
@@ -80,16 +79,10 @@ function showIconSetDetails(iconTags, iconSetName) {
   document.getElementById("author").textContent = iconSet.author;
 }
 
-function getPreviewIcon(svgText) {
+function getPreviewIcon(svgText, icon) {
   // https://www.measurethat.net/Benchmarks/Show/14659
   const obj = domParser.parseFromString(svgText, "image/svg+xml");
   const svg = obj.documentElement;
-  svg.setAttribute("width", previewSize);
-  svg.setAttribute("height", previewSize);
-  svg.setAttribute("role", "button");
-  svg.setAttribute("data-bs-toggle", "offcanvas");
-  svg.setAttribute("data-bs-target", "#details");
-  svg.setAttribute("aria-controls", "details");
   svg.onclick = () => {
     showIconDetails(svg, icon);
   };
@@ -116,8 +109,8 @@ function drawIcons(icons) {
     const target = (pagingTo <= 0)
       ? searchResults.slice(from)
       : searchResults.slice(from, pagingTo);
-    target.forEach((icon) => {
-      worker.postMessage(icon[0]);
+    target.forEach((icon, i) => {
+      worker.postMessage([icon[0], i, previewSize]);
     });
   }
 }
@@ -130,7 +123,7 @@ function redrawIcons(from, to) {
 
   const target = searchResults.slice(from, to);
   target.forEach((icon) => {
-    worker.postMessage(icon[0]);
+    worker.postMessage([icon[0], i, previewSize]);
   });
   document.getElementById("loading").classList.add("d-none");
 }
@@ -312,8 +305,9 @@ loadConfig();
 const domParser = new DOMParser();
 const worker = new Worker("worker.js");
 worker.addEventListener("message", (event) => {
-  const svgText = event.data;
-  const svg = getPreviewIcon(svgText);
+  const [svgText, pos] = event.data;
+  const icon = searchResults[pos];
+  const svg = getPreviewIcon(svgText, icon);
   document.getElementById("result").firstElementChild.appendChild(svg);
 });
 const searchParams = new Proxy(new URLSearchParams(location.search), {
