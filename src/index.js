@@ -46,7 +46,9 @@ function initSearchTags() {
 }
 
 function getSelectedIconPos(svg) {
-  const icons = [...document.getElementById("result").firstElementChild.children];
+  const icons = [
+    ...document.getElementById("result").firstElementChild.children,
+  ];
   console.log(icons.indexOf(svg));
   return icons.indexOf(svg);
 }
@@ -78,9 +80,9 @@ function showIconSetDetails(iconTags, iconSetName) {
   document.getElementById("author").textContent = iconSet.author;
 }
 
-function getPreviewIcon(icon) {
+function getPreviewIcon(svgText) {
   // https://www.measurethat.net/Benchmarks/Show/14659
-  const obj = domParser.parseFromString(icon[0], "image/svg+xml");
+  const obj = domParser.parseFromString(svgText, "image/svg+xml");
   const svg = obj.documentElement;
   svg.setAttribute("width", previewSize);
   svg.setAttribute("height", previewSize);
@@ -115,9 +117,7 @@ function drawIcons(icons, div) {
       ? searchResults.slice(from)
       : searchResults.slice(from, pagingTo);
     target.forEach((icon) => {
-      const svg = getPreviewIcon(icon);
-      div.appendChild(svg);
-      uniqIds(svg);
+      worker.postMessage(icon[0]);
     });
   }
 }
@@ -130,9 +130,7 @@ function redrawIcons(from, to) {
 
   const target = searchResults.slice(from, to);
   target.forEach((icon) => {
-    const svg = getPreviewIcon(icon);
-    div.appendChild(svg);
-    uniqIds(svg);
+    worker.postMessage(icon[0]);
   });
   document.getElementById("loading").classList.add("d-none");
 }
@@ -244,29 +242,6 @@ function fetchIcons(tag) {
     });
 }
 
-function uniqIds(svg) {
-  svg.querySelectorAll("[id]").forEach((idElement) => {
-    const id = idElement.id;
-    const uniqId = Math.random().toString(16).slice(2);
-    const idRegExp = new RegExp(`url\\(#${id}\\);?`, "g");
-    idElement.id = uniqId;
-    [...svg.getElementsByTagName("*")].forEach((e) => {
-      [...e.attributes].forEach((attr) => {
-        const name = attr.name;
-        const value = attr.value;
-        if (name == "xlink:href" && value.startsWith("#")) {
-          e.setAttribute(name, `#${uniqId}`);
-        } else {
-          const newValue = value.replace(idRegExp, `url(#${uniqId});`);
-          if (value != newValue) {
-            e.setAttribute(name, newValue);
-          }
-        }
-      });
-    });
-  });
-}
-
 function searchIcons() {
   const obj = document.getElementById("searchText");
   obj.blur();
@@ -335,6 +310,12 @@ function downloadSVG() {
 
 loadConfig();
 const domParser = new DOMParser();
+const worker = new Worker("worker.js");
+worker.addEventListener("message", (event) => {
+  const svgText = event.data;
+  const svg = getPreviewIcon(svgText);
+  document.getElementById("result").firstElementChild.appendChild(svg);
+});
 const searchParams = new Proxy(new URLSearchParams(location.search), {
   get: (params, prop) => params.get(prop),
 });
