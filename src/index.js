@@ -96,7 +96,7 @@ function getPreviewIcon(svgText) {
   return svg;
 }
 
-function drawChunk(chunk, div) {
+function drawChunk(chunk) {
   buffer += chunk;
   const endPos = buffer.lastIndexOf("\t]");
   if (endPos < 0) return;
@@ -104,10 +104,10 @@ function drawChunk(chunk, div) {
   renderStartPos = 0;
   buffer = buffer.slice(endPos + 3);
   const icons = JSON.parse(`[${block}]`);
-  drawIcons(icons, div);
+  drawIcons(icons);
 }
 
-function drawIcons(icons, div) {
+function drawIcons(icons) {
   const prevLength = searchResults.length;
   // https://www.measurethat.net/Benchmarks/Show/4223
   searchResults = [...searchResults, ...icons];
@@ -205,7 +205,7 @@ function initFilterTags() {
   initSuggest(filterTags, datalist);
 }
 
-function iconReader(reader, controller, tag, div) {
+function iconReader(reader, controller, tag) {
   return reader.read().then(({ done, value }) => {
     if (done) {
       controller.close();
@@ -218,9 +218,9 @@ function iconReader(reader, controller, tag, div) {
       return;
     }
     const chunk = new TextDecoder("utf-8").decode(value);
-    drawChunk(chunk, div);
+    drawChunk(chunk);
     controller.enqueue(value);
-    iconReader(reader, controller, tag, div);
+    iconReader(reader, controller, tag);
   });
 }
 
@@ -236,7 +236,7 @@ function fetchIcons(tag) {
       const reader = response.body.getReader();
       new ReadableStream({
         start(controller) {
-          iconReader(reader, controller, tag, div);
+          iconReader(reader, controller, tag);
         },
       });
     });
@@ -282,7 +282,7 @@ function sleep(msec) {
   return new Promise((resolve) => setTimeout(resolve, msec));
 }
 
-function getOriginalSVG(svg) {
+function getOriginalSVG() {
   const pos = pagingFrom + selectedIconPos;
   return searchResults[pos][0];
 }
