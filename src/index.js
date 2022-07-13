@@ -132,7 +132,7 @@ function redrawIcons(from, to) {
       });
   } else {
     const target = searchResults.slice(from, to);
-    target.forEach((icon) => {
+    target.forEach((icon, i) => {
       worker.postMessage([icon[0], i, previewSize]);
     });
   }
