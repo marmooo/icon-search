@@ -164,18 +164,18 @@ function enablePagination(obj, query, getIndexFunc) {
 }
 
 function getPrevIndex() {
-  if (pagingFrom - pagingNum < 0) {
-    return [0, pagingNum];
+  if (pagingFrom - pagingSize < 0) {
+    return [0, pagingSize];
   } else {
-    return [pagingFrom - pagingNum, pagingTo - pagingNum];
+    return [pagingFrom - pagingSize, pagingTo - pagingSize];
   }
 }
 
 function getNextIndex() {
   if (searchResults.length < pagingTo) {
-    return [0, pagingNum];
+    return [0, pagingSize];
   } else {
-    return [pagingFrom + pagingNum, pagingTo + pagingNum];
+    return [pagingFrom + pagingSize, pagingTo + pagingSize];
   }
 }
 
@@ -184,7 +184,7 @@ function setPagination(query) {
   history.replaceState(null, null, url);
   const prev = document.getElementById("prevIcons");
   const next = document.getElementById("nextIcons");
-  if (pagingFrom - pagingNum < 0) {
+  if (pagingFrom - pagingSize < 0) {
     disablePagination(prev, query);
   } else {
     enablePagination(prev, query, getPrevIndex);
@@ -266,13 +266,13 @@ function searchIcons() {
 function filterIcons(tag) {
   const query = document.getElementById("searchText").value;
   pagingFrom = 0;
-  pagingTo = pagingNum;
-  const url = `?q=${query}&from=0&to=${pagingNum}`;
+  pagingTo = pagingSize;
+  const url = `?q=${query}&from=0&to=${pagingSize}`;
   history.replaceState(null, null, url);
   searchResults.map((icon, i) => {
     if (icon[1].includes(tag)) return [icon, i];
   }).filter((icon) => icon)
-    .slice(0, pagingNum).forEach((data) => {
+    .slice(0, pagingSize).forEach((data) => {
       const [icon, i] = data;
       worker.postMessage([icon[0], i, previewSize]);
     });
@@ -336,7 +336,7 @@ let filterTags = new Set();
 let searchResults = [];
 let pagingFrom = 0;
 let pagingTo = 300;
-let pagingNum = 300;
+let pagingSize = 300;
 let previewSize = 32;
 let prevSearchText = "";
 let selectedIconPos;
@@ -361,7 +361,7 @@ document.getElementById("searchText").onkeydown = (event) => {
     if (prevSearchText == event.target.value) return;
     document.getElementById("filterText").value = "";
     pagingFrom = 0;
-    pagingTo = pagingNum;
+    pagingTo = pagingSize;
     searchResults = [];
     searchIcons();
   }
@@ -372,9 +372,9 @@ document.getElementById("filterText").onkeydown = (event) => {
 };
 document.getElementById("download").onclick = downloadSVG;
 document.getElementById("clipboard").onclick = copyToClipboard;
-document.getElementById("pagingNum").onchange = (event) => {
-  pagingNum = parseInt(event.target.value);
-  if (pagingFrom == 0) pagingTo = pagingNum;
+document.getElementById("pagingSize").onchange = (event) => {
+  pagingSize = parseInt(event.target.value);
+  if (pagingFrom == 0) pagingTo = pagingSize;
 };
 document.getElementById("previewSize").onchange = (event) => {
   previewSize = event.target.value.split("x")[0];
