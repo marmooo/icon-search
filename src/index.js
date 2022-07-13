@@ -267,7 +267,7 @@ function filterIcons(tag) {
   const query = document.getElementById("searchText").value;
   pagingFrom = 0;
   pagingTo = pagingNum;
-  const url = `?q=${query}&from=0&to=${pagingNum}&filter=${tag}`;
+  const url = `?q=${query}&from=0&to=${pagingNum}`;
   history.replaceState(null, null, url);
   searchResults.map((icon, i) => {
     if (icon[1].includes(tag)) return [icon, i];
