@@ -121,10 +121,21 @@ function redrawIcons(from, to) {
   const div = document.createElement("div");
   result.replaceChild(div, result.firstElementChild);
 
-  const target = searchResults.slice(from, to);
-  target.forEach((icon) => {
-    worker.postMessage([icon[0], i, previewSize]);
-  });
+  const filterText = document.getElementById("filterText").value;
+  if (filterText != "") {
+    searchResults.map((icon, i) => {
+      if (icon[1].includes(filterText)) return [icon, i];
+    }).filter((icon) => icon)
+      .slice(from, to).forEach((data) => {
+        const [icon, i] = data;
+        worker.postMessage([icon[0], i, previewSize]);
+      });
+  } else {
+    const target = searchResults.slice(from, to);
+    target.forEach((icon) => {
+      worker.postMessage([icon[0], i, previewSize]);
+    });
+  }
   document.getElementById("loading").classList.add("d-none");
 }
 
@@ -252,23 +263,29 @@ function searchIcons() {
   fetchIcons(tag);
 }
 
-function filterIcons(tag, svgs) {
-  searchResults.forEach((icon, i) => {
-    if (icon[1].includes(tag)) {
-      svgs[i].classList.remove("d-none");
-    } else {
-      svgs[i].classList.add("d-none");
-    }
-  });
+function filterIcons(tag) {
+  const query = document.getElementById("searchText").value;
+  pagingFrom = 0;
+  pagingTo = pagingNum;
+  const url = `?q=${query}&from=0&to=${pagingNum}&filter=${tag}`;
+  history.replaceState(null, null, url);
+  searchResults.map((icon, i) => {
+    if (icon[1].includes(tag)) return [icon, i];
+  }).filter((icon) => icon)
+    .slice(0, pagingNum).forEach((data) => {
+      const [icon, i] = data;
+      worker.postMessage([icon[0], i, previewSize]);
+    });
 }
 
 function filterResults() {
   const result = document.getElementById("result");
-  const svgs = [...result.firstElementChild.children];
+  const div = document.createElement("div");
+  result.replaceChild(div, result.firstElementChild);
   const obj = document.getElementById("filterText");
   obj.blur();
   obj.focus();
-  filterIcons(obj.value, svgs);
+  filterIcons(obj.value);
 }
 
 function sleep(msec) {
