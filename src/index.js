@@ -124,17 +124,18 @@ function redrawIcons(from, to) {
 
   const filterText = document.getElementById("filterText").value;
   if (filterText != "") {
-    searchResults.map((icon, i) => {
-      if (icon[1].includes(filterText)) return [icon, i];
+    searchResults.map((icon, pos) => {
+      if (icon[1].includes(filterText)) return [icon, pos];
     }).filter((icon) => icon)
       .slice(from, to).forEach((data) => {
-        const [icon, i] = data;
-        worker.postMessage([icon[0], i, previewSize]);
+        const [icon, pos] = data;
+        worker.postMessage([icon[0], pos, previewSize]);
       });
   } else {
     const target = searchResults.slice(from, to);
     target.forEach((icon, i) => {
-      worker.postMessage([icon[0], i, previewSize]);
+      const pos = from + i;
+      worker.postMessage([icon[0], pos, previewSize]);
     });
   }
   document.getElementById("loading").classList.add("d-none");
