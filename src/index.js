@@ -110,7 +110,8 @@ function drawIcons(icons) {
       ? searchResults.slice(from)
       : searchResults.slice(from, pagingTo);
     target.forEach((icon, i) => {
-      worker.postMessage([icon[0], i, previewSize]);
+      const pos = from + i;
+      worker.postMessage([icon[0], pos, previewSize]);
     });
   }
 }
