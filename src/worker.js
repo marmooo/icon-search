@@ -1,7 +1,7 @@
 function uniqIds(doc) {
   doc.querySelectorAll("[id]").forEach((idElement) => {
     const id = idElement.id;
-    const uniqId = Math.random().toString(16).slice(2);
+    const uniqId = "id-" + Math.random().toString(16).slice(2);
     const idRegExp = new RegExp(`url\\(#${id}\\);?`, "g");
     idElement.id = uniqId;
     [...doc.getElementsByTagName("*")].forEach((e) => {
