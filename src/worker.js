@@ -20,6 +20,21 @@ function uniqIds(doc) {
   return doc;
 }
 
+function uniqClasses(doc) {
+  const styles = doc.querySelectorAll("style");
+  if (styles) {
+    const regexp = new RegExp("(\.[^}]+\})", "g");
+    const uniqId = "id-" + Math.random().toString(16).slice(2);
+    const svg = doc.querySelector("svg");
+    svg.setAttribute("id", uniqId);
+    styles.forEach((style) => {
+      console.log(style.textContent);
+      style.textContent = style.textContent.replace(regexp, `#${uniqId} $1`);
+      console.log(style.textContent);
+    });
+  }
+}
+
 function setPreviewInfo(doc, previewSize) {
   const svg = doc.querySelector("svg");
   svg.setAttribute("width", previewSize);
@@ -37,6 +52,7 @@ self.addEventListener("message", (e) => {
   const [svgText, pos, previewSize] = e.data;
   const doc = HTMLParser.parse(svgText);
   uniqIds(doc);
+  uniqClasses(doc);
   setPreviewInfo(doc, previewSize);
   postMessage([doc.toString(), pos]);
 });
