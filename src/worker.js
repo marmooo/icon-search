@@ -28,9 +28,7 @@ function uniqClasses(doc) {
     const svg = doc.querySelector("svg");
     svg.setAttribute("id", uniqId);
     styles.forEach((style) => {
-      console.log(style.textContent);
       style.textContent = style.textContent.replace(regexp, `#${uniqId} $1`);
-      console.log(style.textContent);
     });
   }
 }
