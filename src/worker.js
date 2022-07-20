@@ -3,7 +3,7 @@ function uniqIds(doc) {
     const id = idElement.id;
     const uniqId = "id-" + Math.random().toString(16).slice(2);
     const idRegExp = new RegExp(`url\\(#${id}\\);?`, "g");
-    idElement.id = uniqId;
+    idElement.setAttribute("id", uniqId);
     [...doc.getElementsByTagName("*")].forEach((e) => {
       for (const [name, value] of Object.entries(e.attributes)) {
         if (name == "xlink:href" && value.startsWith("#")) {
