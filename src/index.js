@@ -122,6 +122,13 @@ function redrawIcons(from, to) {
   const div = document.createElement("div");
   result.replaceChild(div, result.firstElementChild);
 
+  if (buffer != "]" && searchResults.length < pagingTo) {
+    byteFrom += byteRange;
+    byteTo += byteRange;
+    const tag = document.getElementById("searchText").value;
+    renderStartPos = 0;
+    fetchIcons(tag, byteFrom, byteTo);
+  }
   const filterText = document.getElementById("filterText").value;
   if (filterText != "") {
     searchResults.map((icon, pos) => {
@@ -215,29 +222,41 @@ function iconReader(reader, controller, tag) {
   return reader.read().then(({ done, value }) => {
     if (done) {
       controller.close();
-      renderStartPos = 1;
-      buffer = "";
-      document.getElementById("loading").classList.add("d-none");
-      document.getElementById("pagination").classList.remove("d-none");
-      setPagination(tag);
-      initFilterTags();
+      if (buffer != "]" && searchResults.length < pagingTo) {
+        byteFrom += byteRange;
+        byteTo += byteRange;
+        renderStartPos = 0;
+        fetchIcons(tag, byteFrom, byteTo);
+      }
       return;
     }
     const chunk = new TextDecoder("utf-8").decode(value);
     drawChunk(chunk);
     controller.enqueue(value);
     iconReader(reader, controller, tag);
-  });
+  })
+    .finally(() => {
+      renderStartPos = 1;
+      document.getElementById("loading").classList.add("d-none");
+      document.getElementById("pagination").classList.remove("d-none");
+      setPagination(tag);
+      initFilterTags();
+    });
 }
 
 let renderStartPos = 1;
 let buffer = "";
-function fetchIcons(tag) {
+function fetchIcons(tag, byteFrom, byteTo) {
   const result = document.getElementById("result");
   const div = document.createElement("div");
   result.replaceChild(div, result.firstElementChild);
 
-  return fetch(`/icon-db/json/${tag}.json`)
+  return fetch(`/icon-db/json/${tag}.json`, {
+    headers: {
+      "content-type": "multipart/byteranges",
+      "range": `bytes=${byteFrom}-${byteTo}`,
+    },
+  })
     .then((response) => {
       const reader = response.body.getReader();
       new ReadableStream({
@@ -262,7 +281,7 @@ function searchIcons() {
   }
   document.getElementById("noTags").classList.add("invisible");
 
-  fetchIcons(tag);
+  fetchIcons(tag, byteFrom, byteTo);
 }
 
 function filterIcons(tag) {
@@ -339,6 +358,9 @@ let searchResults = [];
 let pagingFrom = 0;
 let pagingTo = 300;
 let pagingSize = 300;
+let byteFrom = 0;
+let byteTo = 2097152; // 2MB
+const byteRange = 2097152; // 2MB
 let previewSize = 32;
 let prevSearchText = "";
 let selectedIconPos;
@@ -365,6 +387,9 @@ document.getElementById("searchText").onkeydown = (event) => {
     pagingFrom = 0;
     pagingTo = pagingSize;
     searchResults = [];
+    buffer = "";
+    byteFrom = 0;
+    byteTo = byteRange;
     searchIcons();
   }
 };
