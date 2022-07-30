@@ -93,8 +93,8 @@ function drawChunk(chunk) {
   buffer += chunk;
   const endPos = buffer.lastIndexOf("\t]");
   if (endPos < 0) return;
-  const block = buffer.slice(renderStartPos, endPos + 2);
-  renderStartPos = 0;
+  const startPos = buffer.indexOf("\t[");
+  const block = buffer.slice(startPos + 1, endPos + 2);
   buffer = buffer.slice(endPos + 3);
   const icons = JSON.parse(`[${block}]`);
   drawIcons(icons);
@@ -126,7 +126,6 @@ function redrawIcons(from, to) {
     byteFrom += byteRange;
     byteTo += byteRange;
     const tag = document.getElementById("searchText").value;
-    renderStartPos = 0;
     fetchIcons(tag, byteFrom, byteTo);
   }
   const filterText = document.getElementById("filterText").value;
@@ -225,7 +224,6 @@ function iconReader(reader, controller, tag) {
       if (buffer != "]" && searchResults.length < pagingTo) {
         byteFrom += byteRange;
         byteTo += byteRange;
-        renderStartPos = 0;
         fetchIcons(tag, byteFrom, byteTo);
       }
       return;
@@ -236,7 +234,6 @@ function iconReader(reader, controller, tag) {
     iconReader(reader, controller, tag);
   })
     .finally(() => {
-      renderStartPos = 1;
       document.getElementById("loading").classList.add("d-none");
       document.getElementById("pagination").classList.remove("d-none");
       setPagination(tag);
@@ -244,7 +241,6 @@ function iconReader(reader, controller, tag) {
     });
 }
 
-let renderStartPos = 1;
 let buffer = "";
 function fetchIcons(tag, byteFrom, byteTo) {
   const result = document.getElementById("result");
