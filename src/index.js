@@ -364,7 +364,11 @@ worker.addEventListener("message", (event) => {
   const [svgText, pos] = event.data;
   const icon = searchResults[pos];
   const svg = getPreviewIcon(svgText, icon);
-  document.getElementById("result").firstElementChild.appendChild(svg);
+  if (svg.tagName == "svg") {
+    document.getElementById("result").firstElementChild.appendChild(svg);
+  } else {
+    console.error("SVG is not valid", searchResults[pos]);
+  }
 });
 const searchParams = new Proxy(new URLSearchParams(location.search), {
   get: (params, prop) => params.get(prop),
