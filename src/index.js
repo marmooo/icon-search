@@ -24,6 +24,16 @@ function initSuggest(tags, datalist) {
   datalist.replaceChildren(...doc.body.childNodes);
 }
 
+function initHeavyTags() {
+  return fetch("/icon-db/heavy.json")
+    .then((response) => response.json())
+    .then((tags) => {
+      tags.forEach((tag) => {
+        heavyTags.add(tag);
+      });
+    });
+}
+
 function initCollections() {
   return fetch("/icon-db/collections.json")
     .then((response) => response.json())
@@ -247,20 +257,32 @@ function fetchIcons(tag, byteFrom, byteTo) {
   const div = document.createElement("div");
   result.replaceChild(div, result.firstElementChild);
 
-  return fetch(`/icon-db/json/${tag}.json`, {
-    headers: {
-      "content-type": "multipart/byteranges",
-      "range": `bytes=${byteFrom}-${byteTo}`,
-    },
-  })
-    .then((response) => {
-      const reader = response.body.getReader();
-      new ReadableStream({
-        start(controller) {
-          iconReader(reader, controller, tag);
-        },
+  if (heavyTags.has(tag)) {
+    return fetch(`/icon-db/json/${tag}.json`, {
+      headers: {
+        "content-type": "multipart/byteranges",
+        "range": `bytes=${byteFrom}-${byteTo}`,
+      },
+    })
+      .then((response) => {
+        const reader = response.body.getReader();
+        new ReadableStream({
+          start(controller) {
+            iconReader(reader, controller, tag);
+          },
+        });
       });
-    });
+  } else {
+    return fetch(`/icon-db/json/${tag}.json`)
+      .then((response) => {
+        const reader = response.body.getReader();
+        new ReadableStream({
+          start(controller) {
+            iconReader(reader, controller, tag);
+          },
+        });
+      });
+  }
 }
 
 function searchIcons() {
@@ -348,6 +370,7 @@ const searchParams = new Proxy(new URLSearchParams(location.search), {
   get: (params, prop) => params.get(prop),
 });
 const collections = new Map();
+const heavyTags = new Set();
 let searchTags = new Set();
 let filterTags = new Set();
 let searchResults = [];
@@ -355,8 +378,8 @@ let pagingFrom = 0;
 let pagingTo = 300;
 let pagingSize = 300;
 let byteFrom = 0;
-let byteTo = 2097152; // 2MB
-const byteRange = 2097152; // 2MB
+let byteTo = 1048575; // 1MB
+const byteRange = 1048575; // 1MB
 let previewSize = 32;
 let prevSearchText = "";
 let selectedIconPos;
@@ -366,6 +389,7 @@ new bootstrap.Offcanvas(document.getElementById("details"));
 Promise.all([
   initSearchTags(),
   initCollections(),
+  initHeavyTags(),
 ]).then(() => {
   if (searchParams.q) {
     prevSearchText = searchParams.q;
