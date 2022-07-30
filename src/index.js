@@ -132,7 +132,7 @@ function redrawIcons(from, to) {
   const div = document.createElement("div");
   result.replaceChild(div, result.firstElementChild);
 
-  if (buffer != "]" && searchResults.length < pagingTo) {
+  if (buffer.trimEnd() != "]" && searchResults.length < pagingTo) {
     byteFrom += byteRange;
     byteTo += byteRange;
     const tag = document.getElementById("searchText").value;
@@ -231,7 +231,7 @@ function iconReader(reader, controller, tag) {
   return reader.read().then(({ done, value }) => {
     if (done) {
       controller.close();
-      if (buffer != "]" && searchResults.length < pagingTo) {
+      if (buffer.trimEnd() != "]" && searchResults.length < pagingTo) {
         byteFrom += byteRange;
         byteTo += byteRange;
         fetchIcons(tag, byteFrom, byteTo);
