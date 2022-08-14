@@ -2,14 +2,14 @@ function uniqIds(doc) {
   doc.querySelectorAll("[id]").forEach((idElement) => {
     const id = idElement.id;
     const uniqId = "id-" + Math.random().toString(16).slice(2);
-    const idRegExp = new RegExp(`url\\(#${id}\\);?`, "g");
+    const idRegExp = new RegExp(`url\\(#${id}\\)`, "g");
     idElement.setAttribute("id", uniqId);
     [...doc.getElementsByTagName("*")].forEach((e) => {
       for (const [name, value] of Object.entries(e.attributes)) {
         if (name == "xlink:href" && value.startsWith("#")) {
           e.setAttribute(name, `#${uniqId}`);
         } else {
-          const newValue = value.replace(idRegExp, `url(#${uniqId});`);
+          const newValue = value.replace(idRegExp, `url(#${uniqId})`);
           if (value != newValue) {
             e.setAttribute(name, newValue);
           }
