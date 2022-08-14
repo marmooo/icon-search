@@ -383,7 +383,7 @@ let pagingTo = 300;
 let pagingSize = 300;
 let byteFrom = 0;
 let byteTo = 1048575; // 1MB
-const byteRange = 1048575; // 1MB
+const byteRange = 1048576; // 1MB
 let previewSize = 32;
 let prevSearchText = "";
 let selectedIconPos;
