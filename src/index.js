@@ -413,7 +413,7 @@ document.getElementById("searchText").onkeydown = (event) => {
     searchResults = [];
     buffer = "";
     byteFrom = 0;
-    byteTo = byteRange;
+    byteTo = byteRange - 1;
     searchIcons();
   }
 };
