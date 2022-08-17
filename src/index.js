@@ -24,12 +24,32 @@ function initSuggest(tags, datalist) {
   datalist.replaceChildren(...doc.body.childNodes);
 }
 
+function initLightTags() {
+  const maxSize = 10 * 1024 * 1024;
+  return fetch("/icon-db/light.json")
+    .then((response) => response.json())
+    .then((tags) => {
+      let prevPos = 2;
+      let n = 1;
+      tags.forEach(([tag, pos]) => {
+        const end = prevPos + pos;
+        lightTags.set(tag, [prevPos, end, n]);
+        if (maxSize < end) {
+          prevPos = 2;
+          n += 1;
+        } else {
+          prevPos = end + 2;
+        }
+      });
+    });
+}
+
 function initHeavyTags() {
   return fetch("/icon-db/heavy.json")
     .then((response) => response.json())
     .then((tags) => {
-      tags.forEach((tag) => {
-        heavyTags.add(tag);
+      tags.forEach(([tag, num]) => {
+        heavyTags.set(tag, num);
       });
     });
 }
@@ -132,11 +152,17 @@ function redrawIcons(from, to) {
   const div = document.createElement("div");
   result.replaceChild(div, result.firstElementChild);
 
-  if (buffer.trimEnd() != "]" && searchResults.length < pagingTo) {
-    byteFrom += byteRange;
-    byteTo += byteRange;
-    const tag = document.getElementById("searchText").value;
-    fetchIcons(tag, byteFrom, byteTo);
+  const tag = document.getElementById("searchText").value;
+  if (searchResults.length < pagingTo) {
+    if (heavyTags.has(tag)) {
+      const max = heavyTags.get(tag);
+      if (pagingNumForHeavyTags < max) {
+        pagingNumForHeavyTags += 1;
+        fetchIcons(tag);
+      }
+    } else {
+      if (buffer.trimEnd() != "]") fetchIcons(tag);
+    }
   }
   const filterText = document.getElementById("filterText").value;
   if (filterText != "") {
@@ -232,9 +258,7 @@ function iconReader(reader, controller, tag) {
     if (done) {
       controller.close();
       if (buffer.trimEnd() != "]" && searchResults.length < pagingTo) {
-        byteFrom += byteRange;
-        byteTo += byteRange;
-        fetchIcons(tag, byteFrom, byteTo);
+        fetchIcons(tag);
       }
       return;
     }
@@ -252,18 +276,30 @@ function iconReader(reader, controller, tag) {
 }
 
 let buffer = "";
-function fetchIcons(tag, byteFrom, byteTo) {
+function fetchIcons(tag) {
   const result = document.getElementById("result");
   const div = document.createElement("div");
   result.replaceChild(div, result.firstElementChild);
 
-  if (heavyTags.has(tag)) {
-    return fetch(`/icon-db/json/${tag}.json`, {
+  if (lightTags.has(tag)) {
+    const [from, to, n] = lightTags.get(tag);
+    return fetch(`/icon-db/json/@rare.${n}.json`, {
       headers: {
         "content-type": "multipart/byteranges",
-        "range": `bytes=${byteFrom}-${byteTo}`,
+        "range": `bytes=${from}-${to}`,
       },
     })
+      .then((response) => response.text())
+      .then((text) => drawChunk(text))
+      .finally(() => {
+        document.getElementById("loading").classList.add("d-none");
+        document.getElementById("pagination").classList.remove("d-none");
+        setPagination(tag);
+        initFilterTags();
+      });
+  } else if (heavyTags.has(tag)) {
+    const n = pagingNumForHeavyTags;
+    return fetch(`/icon-db/json/${tag}.${n}.json`)
       .then((response) => {
         const reader = response.body.getReader();
         new ReadableStream({
@@ -299,7 +335,7 @@ function searchIcons() {
   }
   document.getElementById("noTags").classList.add("invisible");
 
-  fetchIcons(tag, byteFrom, byteTo);
+  fetchIcons(tag);
 }
 
 function filterIcons(tag) {
@@ -374,16 +410,15 @@ const searchParams = new Proxy(new URLSearchParams(location.search), {
   get: (params, prop) => params.get(prop),
 });
 const collections = new Map();
-const heavyTags = new Set();
+const heavyTags = new Map();
+const lightTags = new Map();
 let searchTags = new Set();
 let filterTags = new Set();
 let searchResults = [];
+let pagingNumForHeavyTags = 1;
 let pagingFrom = 0;
 let pagingTo = 300;
 let pagingSize = 300;
-let byteFrom = 0;
-let byteTo = 1048575; // 1MB
-const byteRange = 1048576; // 1MB
 let previewSize = 32;
 let prevSearchText = "";
 let selectedIconPos;
@@ -394,6 +429,7 @@ Promise.all([
   initSearchTags(),
   initCollections(),
   initHeavyTags(),
+  initLightTags(),
 ]).then(() => {
   if (searchParams.q) {
     prevSearchText = searchParams.q;
@@ -408,12 +444,11 @@ document.getElementById("searchText").onkeydown = (event) => {
   if (event.key == "Enter") {
     if (prevSearchText == event.target.value) return;
     document.getElementById("filterText").value = "";
+    pagingNumForHeavyTags = 1;
     pagingFrom = 0;
     pagingTo = pagingSize;
     searchResults = [];
     buffer = "";
-    byteFrom = 0;
-    byteTo = byteRange - 1;
     searchIcons();
   }
 };
