@@ -6,12 +6,18 @@ function uniqIds(doc) {
     idElement.setAttribute("id", uniqId);
     [...doc.getElementsByTagName("*")].forEach((e) => {
       for (const [name, value] of Object.entries(e.attributes)) {
-        if (name == "xlink:href" && value.startsWith("#")) {
-          e.setAttribute(name, `#${uniqId}`);
-        } else {
-          const newValue = value.replace(idRegExp, `url(#${uniqId})`);
-          if (value != newValue) {
-            e.setAttribute(name, newValue);
+        switch (name) {
+          case "href": // SVG 2.0
+          case "xlink:href": // SVG 1.1
+            if (value == `#${id}`) {
+              e.setAttribute(name, `#${uniqId}`);
+            }
+            break;
+          default: {
+            const newValue = value.replace(idRegExp, `url(#${uniqId})`);
+            if (value != newValue) {
+              e.setAttribute(name, newValue);
+            }
           }
         }
       }
