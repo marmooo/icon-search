@@ -26,7 +26,7 @@ function initSuggest(tags, datalist) {
 
 function initLightTags() {
   const maxSize = 10 * 1024 * 1024;
-  return fetch("/icon-db/light.json")
+  return fetch(`${iconDB}/light.json`)
     .then((response) => response.json())
     .then((tags) => {
       let prevPos = 2;
@@ -45,7 +45,7 @@ function initLightTags() {
 }
 
 function initHeavyTags() {
-  return fetch("/icon-db/heavy.json")
+  return fetch(`${iconDB}/heavy.json`)
     .then((response) => response.json())
     .then((tags) => {
       tags.forEach(([tag, num]) => {
@@ -55,7 +55,7 @@ function initHeavyTags() {
 }
 
 function initCollections() {
-  return fetch("/icon-db/collections.json")
+  return fetch(`${iconDB}/collections.json`)
     .then((response) => response.json())
     .then((json) => {
       json.forEach((iconSet) => {
@@ -67,7 +67,7 @@ function initCollections() {
 
 function initSearchTags() {
   const datalist = document.getElementById("searchTags");
-  return fetch("/icon-db/tags.json")
+  return fetch(`${iconDB}/tags.json`)
     .then((response) => response.json())
     .then((json) => {
       searchTags = new Set(json);
@@ -283,7 +283,7 @@ function fetchIcons(tag) {
 
   if (lightTags.has(tag)) {
     const [from, to, n] = lightTags.get(tag);
-    return fetch(`/icon-db/json/@rare.${n}.json`, {
+    return fetch(`${iconDB}/json/@rare.${n}.json`, {
       headers: {
         "content-type": "multipart/byteranges",
         "range": `bytes=${from}-${to}`,
@@ -299,7 +299,7 @@ function fetchIcons(tag) {
       });
   } else if (heavyTags.has(tag)) {
     const n = pagingNumForHeavyTags;
-    return fetch(`/icon-db/json/${tag}.${n}.json`)
+    return fetch(`${iconDB}/json/${tag}.${n}.json`)
       .then((response) => {
         const reader = response.body.getReader();
         new ReadableStream({
@@ -309,7 +309,7 @@ function fetchIcons(tag) {
         });
       });
   } else {
-    return fetch(`/icon-db/json/${tag}.json`)
+    return fetch(`${iconDB}/json/${tag}.json`)
       .then((response) => {
         const reader = response.body.getReader();
         new ReadableStream({
@@ -394,6 +394,7 @@ function downloadSVG() {
 }
 
 loadConfig();
+const iconDB = "https://icon-db.pages.dev";
 const domParser = new DOMParser();
 const worker = new Worker("worker.js");
 worker.addEventListener("message", (event) => {
