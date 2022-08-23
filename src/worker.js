@@ -1,46 +1,34 @@
-function cleanup(doc) {
-  const idElements = [];
-  const urlAttributes = [];
-  const styleElements = [];
-  [...doc.getElementsByTagName("*")].forEach((e) => {
-    for (const [name, value] of Object.entries(e.attributes)) {
-      if (name == "id") idElements.push(e);
-      if (e.tagName == "style") styleElements.push(e);
-      if (value.startsWith("#")) urlAttributes.push([e, name, value]);
-      if (value.includes("url")) urlAttributes.push([e, name, value]);
-    }
-  });
-  uniqIds(doc, idElements, urlAttributes);
-  uniqClasses(doc, styleElements);
+function cleanup(svgText) {
+  svgText = uniqIds(svgText);
+  return uniqClasses(svgText);
 }
 
-function uniqIds(doc, idElements, urlAttributes) {
-  idElements.forEach((idElement) => {
-    const id = idElement.id;
+function uniqIds(svgText) {
+  const ids = new Map();
+  function idReplacer(_match, p1) {
     const uniqId = "id-" + Math.random().toString(16).slice(2);
-    const idRegExp = new RegExp(`url\\(#${id}\\)`, "g");
-    idElement.setAttribute("id", uniqId);
-    urlAttributes.forEach(([e, name, value]) => {
-      switch (name) {
-        case "href": // SVG 2.0
-        case "xlink:href": // SVG 1.1
-          if (value == `#${id}`) {
-            e.setAttribute(name, `#${uniqId}`);
-          }
-          break;
-        default: {
-          const newValue = value.replace(idRegExp, `url(#${uniqId})`);
-          if (value != newValue) {
-            e.setAttribute(name, newValue);
-          }
-        }
-      }
-    });
-  });
-  return doc;
+    ids.set(p1, uniqId);
+    return `id="${uniqId}"`;
+  }
+  // #id, url(#id)
+  function valueReplacer(match, p1, p2) {
+    if (ids.has(p1)) {
+      const uniqId = ids.get(p1);
+      return `#${uniqId}${p2}`;
+    } else {
+      return match;
+    }
+  }
+  svgText = svgText.replace(/id="([^"]+)"/g, idReplacer);
+  svgText = svgText.replaceAll(/#([^")]+)([")])/g, valueReplacer);
+  return svgText;
 }
 
-function uniqClasses(doc, styleElements) {
+function uniqClasses(svgText) {
+  const doc = HTMLParser.parse(svgText);
+  if (!svgText.includes("style")) return doc;
+
+  const styleElements = [...doc.getElementsByTagName("style")];
   if (styleElements.length > 0) {
     const regexp = new RegExp("(\.[^}]+\})", "g");
     const uniqId = "id-" + Math.random().toString(16).slice(2);
@@ -48,7 +36,8 @@ function uniqClasses(doc, styleElements) {
     svg.setAttribute("id", uniqId);
     styleElements.forEach((styleElement) => {
       const style = styleElement.textContent;
-      const newStyle = styles.replace(regexp, `#${uniqId} $1`);
+      const newStyle = style.replace(regexp, `#${uniqId} $1`);
+      console.log(style, newStyle);
       if (style != newStyle) {
         styleElement.textContent = newStyle;
       }
@@ -72,8 +61,7 @@ importScripts("node-html-parser.js");
 
 self.addEventListener("message", (e) => {
   const [svgText, pos, previewSize] = e.data;
-  const doc = HTMLParser.parse(svgText);
-  cleanup(doc);
+  const doc = cleanup(svgText);
   setPreviewInfo(doc, previewSize);
   postMessage([doc.toString(), pos]);
 });
