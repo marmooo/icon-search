@@ -37,7 +37,6 @@ function uniqClasses(svgText) {
     styleElements.forEach((styleElement) => {
       const style = styleElement.textContent;
       const newStyle = style.replace(regexp, `#${uniqId} $1`);
-      console.log(style, newStyle);
       if (style != newStyle) {
         styleElement.textContent = newStyle;
       }
