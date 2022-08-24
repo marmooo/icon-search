@@ -487,6 +487,7 @@ document.getElementById("searchText").onkeydown = (event) => {
     pagingTo = pagingSize;
     searchResults = [];
     buffer = "";
+    prevSearchText = tag;
     searchIcons();
   }
 };
