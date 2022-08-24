@@ -155,9 +155,9 @@ function redrawIcons(from, to) {
   const tag = document.getElementById("searchText").value;
   if (searchResults.length < pagingTo) {
     if (heavyTags.has(tag)) {
-      const max = heavyTags.get(tag);
-      if (pagingNumForHeavyTags < max) {
-        pagingNumForHeavyTags += 1;
+      const max = heavyTags.get(tag) - 1;
+      if (pageNumForHeavyTags < max) {
+        pageNumForHeavyTags += 1;
         fetchIcons(tag);
       }
     } else {
@@ -233,10 +233,22 @@ function setPagination(query) {
   } else {
     enablePagination(prev, query, getPrevIndex);
   }
-  if (searchResults.length < pagingTo) {
-    disablePagination(next, query);
+  if (heavyTags.has(query)) {
+    if (pageNumForHeavyTags < pagesForHeavyTags.length - 1) {
+      enablePagination(next, query, getNextIndex);
+    } else {
+      if (searchResults.length < pagingTo) {
+        disablePagination(next, query);
+      } else {
+        enablePagination(next, query, getNextIndex);
+      }
+    }
   } else {
-    enablePagination(next, query, getNextIndex);
+    if (searchResults.length < pagingTo) {
+      disablePagination(next, query);
+    } else {
+      enablePagination(next, query, getNextIndex);
+    }
   }
 }
 
@@ -257,7 +269,8 @@ function iconReader(reader, controller, tag) {
   return reader.read().then(({ done, value }) => {
     if (done) {
       controller.close();
-      if (buffer.trimEnd() != "]" && searchResults.length < pagingTo) {
+      if (buffer.trimEnd() == "]" && searchResults.length < pagingTo) {
+        pageNumForHeavyTags += 1;
         fetchIcons(tag);
       }
       return;
@@ -298,7 +311,7 @@ function fetchIcons(tag) {
         initFilterTags();
       });
   } else if (heavyTags.has(tag)) {
-    const n = pagingNumForHeavyTags;
+    const n = pagesForHeavyTags[pageNumForHeavyTags];
     return fetch(`${iconDB}/json/${tag}.${n}.json`)
       .then((response) => {
         const reader = response.body.getReader();
@@ -393,8 +406,17 @@ function downloadSVG() {
   document.body.removeChild(a);
 }
 
+function shuffle(array) {
+  for (i = array.length; 1 < i; i--) {
+    k = Math.floor(Math.random() * i);
+    [array[k], array[i - 1]] = [array[i - 1], array[k]];
+  }
+  return array;
+}
+
 loadConfig();
-const iconDB = "https://icon-db.pages.dev";
+// const iconDB = "https://icon-db.pages.dev";
+const iconDB = "/icon-db";
 const domParser = new DOMParser();
 const worker = new Worker("worker.js");
 worker.addEventListener("message", (event) => {
@@ -416,7 +438,8 @@ const lightTags = new Map();
 let searchTags = new Set();
 let filterTags = new Set();
 let searchResults = [];
-let pagingNumForHeavyTags = 1;
+let pagesForHeavyTags = [];
+let pageNumForHeavyTags = 0;
 let pagingFrom = 0;
 let pagingTo = 300;
 let pagingSize = 300;
@@ -432,9 +455,15 @@ Promise.all([
   initHeavyTags(),
   initLightTags(),
 ]).then(() => {
-  if (searchParams.q) {
-    prevSearchText = searchParams.q;
-    document.getElementById("searchText").value = searchParams.q;
+  const tag = searchParams.q;
+  if (tag) {
+    prevSearchText = tag;
+    document.getElementById("searchText").value = tag;
+    if (heavyTags.has(tag)) {
+      const n = heavyTags.get(tag);
+      pagesForHeavyTags = Array(n).fill().map((_, i) => i + 1);
+      shuffle(pagesForHeavyTags);
+    }
     searchIcons();
   }
 });
@@ -442,10 +471,15 @@ Promise.all([
 document.getElementById("toggleDarkMode").onclick = toggleDarkMode;
 document.getElementById("search").onclick = searchIcons;
 document.getElementById("searchText").onkeydown = (event) => {
+  const tag = event.target.value;
   if (event.key == "Enter") {
-    if (prevSearchText == event.target.value) return;
+    if (prevSearchText == tag) return;
+    if (heavyTags.has(tag)) {
+      const n = heavyTags.get(tag);
+      pagesForHeavyTags = Array(n).fill().map((_, i) => i + 1);
+      shuffle(pagesForHeavyTags);
+    }
     document.getElementById("filterText").value = "";
-    pagingNumForHeavyTags = 1;
     pagingFrom = 0;
     pagingTo = pagingSize;
     searchResults = [];
