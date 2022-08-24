@@ -103,6 +103,7 @@ function showIconSetDetails(iconTags, iconSetName) {
 function initIconTemplate(previewSize) {
   const img = new Image(previewSize, previewSize);
   img.className = "btn p-0";
+  img.setAttribute("alt", "");
   img.setAttribute("role", "button");
   img.setAttribute("decoding", "async");
   img.setAttribute("data-bs-toggle", "offcanvas");
