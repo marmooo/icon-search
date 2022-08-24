@@ -415,8 +415,7 @@ function shuffle(array) {
 }
 
 loadConfig();
-// const iconDB = "https://icon-db.pages.dev";
-const iconDB = "/icon-db";
+const iconDB = "https://icon-db.pages.dev";
 const domParser = new DOMParser();
 const worker = new Worker("worker.js");
 worker.addEventListener("message", (event) => {
