@@ -82,21 +82,12 @@ function getSelectedIconPos(svg) {
   return icons.indexOf(svg);
 }
 
-function showIconDetails(svg, icon) {
-  const iconTags = icon[1];
-  const iconSetName = icon[2];
-  selectedIconPos = getSelectedIconPos(svg);
-  showIconSetDetails(iconTags, iconSetName);
-  const selectedIcon = svg.cloneNode(true);
-  selectedIcon.removeAttribute("role");
-  selectedIcon.removeAttribute("data-bs-toggle");
-  selectedIcon.removeAttribute("data-bs-target");
-  selectedIcon.removeAttribute("aria-controls");
-  selectedIcon.setAttribute("width", 128);
-  selectedIcon.setAttribute("height", 128);
-  selectedIcon.onclick = null;
+function showIconDetails(selectedImg, icon) {
+  const img = new Image(128, 128);
+  img.setAttribute("decoding", "async");
+  img.src = selectedImg.src;
   const selectedIconParent = document.getElementById("selectedIcon");
-  selectedIconParent.firstElementChild.replaceWith(selectedIcon);
+  selectedIconParent.firstElementChild.replaceWith(img);
 }
 
 function showIconSetDetails(iconTags, iconSetName) {
@@ -109,14 +100,28 @@ function showIconSetDetails(iconTags, iconSetName) {
   document.getElementById("author").textContent = iconSet.author;
 }
 
+function initIconTemplate(previewSize) {
+  const img = new Image(previewSize, previewSize);
+  img.className = "btn p-0";
+  img.setAttribute("role", "button");
+  img.setAttribute("decoding", "async");
+  img.setAttribute("data-bs-toggle", "offcanvas");
+  img.setAttribute("data-bs-target", "#details");
+  img.setAttribute("aria-controls", "details");
+  return img;
+}
+
 function getPreviewIcon(svgText, icon) {
-  // https://www.measurethat.net/Benchmarks/Show/14659
-  const obj = domParser.parseFromString(svgText, "image/svg+xml");
-  const svg = obj.documentElement;
-  svg.onclick = () => {
-    showIconDetails(svg, icon);
+  const img = iconTemplate.cloneNode();
+  img.onclick = () => {
+    const iconTags = icon[1];
+    const iconSetName = icon[2];
+    selectedIconPos = getSelectedIconPos(img);
+    showIconSetDetails(iconTags, iconSetName);
+    showIconDetails(img, icon);
   };
-  return svg;
+  img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgText);
+  return img;
 }
 
 function drawChunk(chunk) {
@@ -141,7 +146,7 @@ function drawIcons(icons) {
       : searchResults.slice(from, pagingTo);
     target.forEach((icon, i) => {
       const pos = from + i;
-      worker.postMessage([icon[0], pos, previewSize]);
+      worker.postMessage([icon[0], pos]);
     });
   }
 }
@@ -171,13 +176,13 @@ function redrawIcons(from, to) {
     }).filter((icon) => icon)
       .slice(from, to).forEach((data) => {
         const [icon, pos] = data;
-        worker.postMessage([icon[0], pos, previewSize]);
+        worker.postMessage([icon[0], pos]);
       });
   } else {
     const target = searchResults.slice(from, to);
     target.forEach((icon, i) => {
       const pos = from + i;
-      worker.postMessage([icon[0], pos, previewSize]);
+      worker.postMessage([icon[0], pos]);
     });
   }
   document.getElementById("loading").classList.add("d-none");
@@ -363,7 +368,7 @@ function filterIcons(tag) {
   }).filter((icon) => icon)
     .slice(0, pagingSize).forEach((data) => {
       const [icon, i] = data;
-      worker.postMessage([icon[0], i, previewSize]);
+      worker.postMessage([icon[0], i]);
     });
 }
 
@@ -423,11 +428,7 @@ worker.addEventListener("message", (event) => {
   const [svgText, pos] = event.data;
   const icon = searchResults[pos];
   const svg = getPreviewIcon(svgText, icon);
-  if (svg.tagName == "svg") {
-    document.getElementById("result").firstElementChild.appendChild(svg);
-  } else {
-    console.error("SVG is not valid", searchResults[pos]);
-  }
+  document.getElementById("result").firstElementChild.appendChild(svg);
 });
 const searchParams = new Proxy(new URLSearchParams(location.search), {
   get: (params, prop) => params.get(prop),
@@ -446,6 +447,7 @@ let pagingSize = 300;
 let previewSize = 32;
 let prevSearchText = "";
 let selectedIconPos;
+const iconTemplate = initIconTemplate(previewSize);
 if (searchParams.from) pagingFrom = parseInt(searchParams.from);
 if (searchParams.to) pagingTo = parseInt(searchParams.to);
 new bootstrap.Offcanvas(document.getElementById("details"));
@@ -500,6 +502,8 @@ document.getElementById("pagingSize").onchange = (event) => {
 };
 document.getElementById("previewSize").onchange = (event) => {
   previewSize = event.target.value.split("x")[0];
+  iconTemplate.setAttribute("width", previewSize);
+  iconTemplate.setAttribute("height", previewSize);
   const result = document.getElementById("result");
   [...result.firstElementChild.children].forEach((svg) => {
     svg.setAttribute("width", previewSize);
