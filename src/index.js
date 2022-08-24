@@ -479,6 +479,7 @@ document.getElementById("searchText").onkeydown = (event) => {
       shuffle(pagesForHeavyTags);
     }
     document.getElementById("filterText").value = "";
+    pageNumForHeavyTags = 0;
     pagingFrom = 0;
     pagingTo = pagingSize;
     searchResults = [];
