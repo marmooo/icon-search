@@ -269,6 +269,7 @@ function iconReader(reader, controller, tag) {
   return reader.read().then(({ done, value }) => {
     if (done) {
       controller.close();
+      if (!heavyTags.has(tag)) return;
       if (buffer.trimEnd() == "]" && searchResults.length < pagingTo) {
         pageNumForHeavyTags += 1;
         fetchIcons(tag);
