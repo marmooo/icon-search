@@ -296,10 +296,6 @@ function iconReader(reader, controller, tag) {
 
 let buffer = "";
 function fetchIcons(tag) {
-  const result = document.getElementById("result");
-  const div = document.createElement("div");
-  result.replaceChild(div, result.firstElementChild);
-
   if (lightTags.has(tag)) {
     const [from, to, n] = lightTags.get(tag);
     return fetch(`${iconDB}/json/@rare.${n}.json`, {
@@ -354,6 +350,9 @@ function searchIcons() {
   }
   document.getElementById("noTags").classList.add("invisible");
 
+  const result = document.getElementById("result");
+  const div = document.createElement("div");
+  result.replaceChild(div, result.firstElementChild);
   fetchIcons(tag);
 }
 
