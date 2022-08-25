@@ -1,4 +1,4 @@
 self.addEventListener("message", (e) => {
-  const [svgText, pos] = e.data;
-  postMessage([svgText, pos]);
+  const pos = e.data;
+  postMessage(pos);
 });

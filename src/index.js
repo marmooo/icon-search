@@ -82,7 +82,7 @@ function getSelectedIconPos(svg) {
   return icons.indexOf(svg);
 }
 
-function showIconDetails(selectedImg, icon) {
+function showIconDetails(selectedImg) {
   const img = new Image(128, 128);
   img.setAttribute("decoding", "async");
   img.src = selectedImg.src;
@@ -112,11 +112,10 @@ function initIconTemplate(previewSize) {
   return img;
 }
 
-function getPreviewIcon(svgText, icon) {
+function getPreviewIcon(icon) {
   const img = iconTemplate.cloneNode();
+  const [svgText, iconTags, iconSetName] = icon;
   img.onclick = () => {
-    const iconTags = icon[1];
-    const iconSetName = icon[2];
     selectedIconPos = getSelectedIconPos(img);
     showIconSetDetails(iconTags, iconSetName);
     showIconDetails(img, icon);
@@ -145,9 +144,9 @@ function drawIcons(icons) {
     const target = (pagingTo <= 0)
       ? searchResults.slice(from)
       : searchResults.slice(from, pagingTo);
-    target.forEach((icon, i) => {
+    target.forEach((_icon, i) => {
       const pos = from + i;
-      worker.postMessage([icon[0], pos]);
+      worker.postMessage(pos);
     });
   }
 }
@@ -176,14 +175,14 @@ function redrawIcons(from, to) {
       if (icon[1].includes(filterText)) return [icon, pos];
     }).filter((icon) => icon)
       .slice(from, to).forEach((data) => {
-        const [icon, pos] = data;
-        worker.postMessage([icon[0], pos]);
+        const [_icon, pos] = data;
+        worker.postMessage(pos);
       });
   } else {
     const target = searchResults.slice(from, to);
-    target.forEach((icon, i) => {
+    target.forEach((_icon, i) => {
       const pos = from + i;
-      worker.postMessage([icon[0], pos]);
+      worker.postMessage(pos);
     });
   }
   document.getElementById("loading").classList.add("d-none");
@@ -368,8 +367,8 @@ function filterIcons(tag) {
     if (icon[1].includes(tag)) return [icon, i];
   }).filter((icon) => icon)
     .slice(0, pagingSize).forEach((data) => {
-      const [icon, i] = data;
-      worker.postMessage([icon[0], i]);
+      const [_icon, pos] = data;
+      worker.postMessage(pos);
     });
 }
 
@@ -426,9 +425,9 @@ const iconDB = "https://icon-db.pages.dev";
 const domParser = new DOMParser();
 const worker = new Worker("worker.js");
 worker.addEventListener("message", (event) => {
-  const [svgText, pos] = event.data;
+  const pos = event.data;
   const icon = searchResults[pos];
-  const svg = getPreviewIcon(svgText, icon);
+  const svg = getPreviewIcon(icon);
   document.getElementById("result").firstElementChild.appendChild(svg);
 });
 const searchParams = new Proxy(new URLSearchParams(location.search), {
