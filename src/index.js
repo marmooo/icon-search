@@ -118,7 +118,7 @@ function getPreviewIcon(icon) {
   img.onclick = () => {
     selectedIconPos = getSelectedIconPos(img);
     showIconSetDetails(iconTags, iconSetName);
-    showIconDetails(img, icon);
+    showIconDetails(img);
   };
   img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgText);
   return img;
