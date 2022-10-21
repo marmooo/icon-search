@@ -17,11 +17,11 @@ function toggleDarkMode() {
 function initSuggest(input, tags) {
   autocomplete({
     input: input,
-    fetch: function(text, update) {
+    fetch: function (text, update) {
       const suggestions = tags.filter((tag) => tag.startsWith(text));
       update(suggestions);
     },
-    render: function(item) {
+    render: function (item) {
       const itemElement = document.createElement("div");
       itemElement.textContent = item;
       return itemElement;
