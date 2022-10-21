@@ -14,14 +14,23 @@ function toggleDarkMode() {
   }
 }
 
-function initSuggest(tags, datalist) {
-  // https://www.measurethat.net/Benchmarks/Show/14659
-  let html = "";
-  tags.forEach((tag) => {
-    html += `<option>${tag}</option>`;
+function initSuggest(input, tags) {
+  autocomplete({
+    input: input,
+    fetch: function(text, update) {
+      const suggestions = tags.filter((tag) => tag.startsWith(text));
+      update(suggestions);
+    },
+    render: function(item) {
+      const itemElement = document.createElement("div");
+      itemElement.textContent = item;
+      return itemElement;
+    },
+    onSelect: function (item) {
+      input.value = item;
+      searchIcons();
+    },
   });
-  const doc = domParser.parseFromString(html, "text/html");
-  datalist.replaceChildren(...doc.body.childNodes);
 }
 
 function initLightTags() {
@@ -66,12 +75,12 @@ function initCollections() {
 }
 
 function initSearchTags() {
-  const datalist = document.getElementById("searchTags");
+  const searchText = document.getElementById("searchText");
   return fetch(`${iconDB}/tags.json`)
     .then((response) => response.json())
     .then((json) => {
       searchTags = new Set(json);
-      initSuggest(json, datalist);
+      initSuggest(searchText, json);
     });
 }
 
@@ -265,9 +274,8 @@ function initFilterTags() {
       filterTags.add(tag);
     });
   });
-  const datalist = document.getElementById("filterTags");
-  datalist.replaceChildren();
-  initSuggest(filterTags, datalist);
+  const filterText = document.getElementById("filterText");
+  initSuggest(filterText, [...filterTags]);
 }
 
 function iconReader(reader, controller, tag) {
@@ -336,12 +344,29 @@ function fetchIcons(tag) {
   }
 }
 
+function clearSearchCache(tag) {
+  if (heavyTags.has(tag)) {
+    const n = heavyTags.get(tag);
+    pagesForHeavyTags = Array(n).fill().map((_, i) => i + 1);
+    shuffle(pagesForHeavyTags);
+  }
+  document.getElementById("filterText").value = "";
+  pageNumForHeavyTags = 0;
+  pagingFrom = 0;
+  pagingTo = pagingSize;
+  searchResults = [];
+  buffer = "";
+  prevSearchText = tag;
+}
+
 function searchIcons() {
   const obj = document.getElementById("searchText");
+  const tag = obj.value;
+  if (prevSearchText == tag) return;
+  clearSearchCache(tag);
   obj.blur();
   obj.focus();
 
-  const tag = obj.value;
   document.getElementById("loading").classList.remove("d-none");
   document.getElementById("pagination").classList.add("d-none");
   if (!searchTags.has(tag)) {
@@ -458,13 +483,7 @@ Promise.all([
 ]).then(() => {
   const tag = searchParams.q;
   if (tag) {
-    prevSearchText = tag;
     document.getElementById("searchText").value = tag;
-    if (heavyTags.has(tag)) {
-      const n = heavyTags.get(tag);
-      pagesForHeavyTags = Array(n).fill().map((_, i) => i + 1);
-      shuffle(pagesForHeavyTags);
-    }
     searchIcons();
   }
 });
@@ -472,23 +491,7 @@ Promise.all([
 document.getElementById("toggleDarkMode").onclick = toggleDarkMode;
 document.getElementById("search").onclick = searchIcons;
 document.getElementById("searchText").onkeydown = (event) => {
-  const tag = event.target.value;
-  if (event.key == "Enter") {
-    if (prevSearchText == tag) return;
-    if (heavyTags.has(tag)) {
-      const n = heavyTags.get(tag);
-      pagesForHeavyTags = Array(n).fill().map((_, i) => i + 1);
-      shuffle(pagesForHeavyTags);
-    }
-    document.getElementById("filterText").value = "";
-    pageNumForHeavyTags = 0;
-    pagingFrom = 0;
-    pagingTo = pagingSize;
-    searchResults = [];
-    buffer = "";
-    prevSearchText = tag;
-    searchIcons();
-  }
+  if (event.key == "Enter") searchIcons();
 };
 document.getElementById("filter").onclick = filterResults;
 document.getElementById("filterText").onkeydown = (event) => {

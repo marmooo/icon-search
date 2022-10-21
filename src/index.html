@@ -30,6 +30,35 @@
       html[data-theme="dark"] { filter: invert(1) hue-rotate(180deg); }
       @-moz-document url-prefix() { html[data-theme="dark"] { background-color:black; } }
     </style>
+    <style>
+/* https://github.com/kraaden/autocomplete/blob/master/autocomplete.css */
+.autocomplete {
+    background: white;
+    z-index: 1000;
+    font: 14px/22px "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    overflow: auto;
+    box-sizing: border-box;
+    border: 1px solid rgba(50, 50, 50, 0.6);
+}
+
+.autocomplete * {
+    font: inherit;
+}
+
+.autocomplete > div {
+    padding: 0 4px;
+}
+
+.autocomplete .group {
+    background: #eee;
+}
+
+.autocomplete > div:hover:not(.group),
+.autocomplete > div.selected {
+    background: #81ca91;
+    cursor: pointer;
+}
+    </style>
     <script data-ad-client="ca-pub-6459713332128733" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
   </head>
   <body>
@@ -94,8 +123,6 @@
       </div>
       <div class="text-center">
         <div id="noTags" class="text-danger py-1 invisible">Not found</div>
-        <datalist id="searchTags"></datalist>
-        <datalist id="filterTags"></datalist>
         <div id="result">
           <div></div>
           <div id="loading" class="spinner-border mt-3 d-none" role="status">
@@ -163,6 +190,7 @@
       </div>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/autocompleter@6.1.3/autocomplete.min.js" integrity="sha256-IXHSfosnvLWBCKRihY3dRVSS8PsxTjaHbgj2rV03vRk=" crossorigin="anonymous"></script>
     <script src="index.js"></script>
   </body>
 </html>
