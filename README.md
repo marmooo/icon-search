@@ -5,7 +5,8 @@
 
 ## Installation
 
-install [marmooo/icon-db](https://github.com/marmooo/icon-db)
+- install [marmooo/icon-db](https://github.com/marmooo/icon-db)
+- install [marmooo/rare-icon-db](https://github.com/marmooo/rare-icon-db)
 
 ## Build
 
