@@ -307,7 +307,7 @@ let buffer = "";
 function fetchIcons(tag) {
   if (lightTags.has(tag)) {
     const [from, to, n] = lightTags.get(tag);
-    return fetch(`${iconDB}/json/@rare.${n}.json`, {
+    return fetch(`${rareIconDB}/json/@rare.${n}.json`, {
       headers: {
         "content-type": "multipart/byteranges",
         "range": `bytes=${from}-${to}`,
@@ -446,6 +446,7 @@ function shuffle(array) {
 }
 
 loadConfig();
+const rareIconDB = "/rare-icon-db";  // required CORS
 const iconDB = "https://icon-db.pages.dev";
 const domParser = new DOMParser();
 const worker = new Worker("worker.js");
