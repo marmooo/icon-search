@@ -446,7 +446,7 @@ function shuffle(array) {
 }
 
 loadConfig();
-const rareIconDB = "/rare-icon-db";  // required CORS
+const rareIconDB = "/rare-icon-db"; // required CORS
 const iconDB = "https://icon-db.pages.dev";
 const domParser = new DOMParser();
 const worker = new Worker("worker.js");
