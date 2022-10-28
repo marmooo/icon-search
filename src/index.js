@@ -30,7 +30,7 @@ function initSuggest(input, tags) {
       input.value = item;
       searchIcons();
     },
-    minLength: 0,
+    minLength: 1,
   });
 }
 
