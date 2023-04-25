@@ -448,7 +448,6 @@ function shuffle(array) {
 loadConfig();
 const rareIconDB = "/rare-icon-db"; // require same-origin
 const iconDB = "https://icon-db.pages.dev";
-const domParser = new DOMParser();
 const worker = new Worker("worker.js");
 worker.addEventListener("message", (event) => {
   const pos = event.data;
