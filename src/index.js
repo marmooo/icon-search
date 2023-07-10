@@ -42,14 +42,15 @@ function initLightTags() {
       let prevPos = 2;
       let n = 1;
       tags.forEach(([tag, pos]) => {
-        const end = prevPos + pos;
-        lightTags.set(tag, [prevPos, end, n]);
-        if (maxSize < end) {
-          prevPos = 2;
+        let nextPos = prevPos + pos;
+        if (maxSize < nextPos) {
           n += 1;
+          nextPos = 2 + pos;
+          lightTags.set(tag, [2, nextPos, n]);
         } else {
-          prevPos = end + 2;
+          lightTags.set(tag, [prevPos, nextPos, n]);
         }
+        prevPos = nextPos + 2;
       });
     });
 }
