@@ -1,16 +1,23 @@
 function loadConfig() {
   if (localStorage.getItem("darkMode") == 1) {
-    document.documentElement.dataset.theme = "dark";
+    document.documentElement.setAttribute("data-bs-theme", "dark");
+    document.documentElement.setAttribute("data-filter", "false");
   }
 }
 
 function toggleDarkMode() {
   if (localStorage.getItem("darkMode") == 1) {
-    localStorage.setItem("darkMode", 0);
-    delete document.documentElement.dataset.theme;
+    const filter = document.documentElement.getAttribute("data-filter");
+    if (filter == "true") {
+      document.documentElement.setAttribute("data-filter", "false");
+    } else {
+      localStorage.setItem("darkMode", 0);
+      document.documentElement.setAttribute("data-bs-theme", "light");
+    }
   } else {
     localStorage.setItem("darkMode", 1);
-    document.documentElement.dataset.theme = "dark";
+    document.documentElement.setAttribute("data-bs-theme", "dark");
+      document.documentElement.setAttribute("data-filter", "true");
   }
 }
 
