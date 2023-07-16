@@ -1,7 +1,7 @@
 # icon-search
 
 [Icon Search](https://marmooo.github.io/icon-search/). 150+ icon sets with
-180,000+ icons.
+190,000+ icons.
 
 ## Installation
 
