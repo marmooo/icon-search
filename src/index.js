@@ -510,7 +510,14 @@ document.getElementById("download").onclick = downloadSVG;
 document.getElementById("clipboard").onclick = copyToClipboard;
 document.getElementById("pagingSize").onchange = (event) => {
   pagingSize = parseInt(event.target.value);
-  if (pagingFrom == 0) pagingTo = pagingSize;
+  pagingTo = pagingFrom + pagingSize;
+  const query = document.getElementById("searchText").value;
+  if (query) {
+    const url = `?q=${query}&from=${pagingFrom}&to=${pagingTo}`;
+    history.replaceState(null, null, url);
+    redrawIcons(pagingFrom, pagingTo);
+    setPagination(query);
+  }
 };
 document.getElementById("previewSize").onchange = (event) => {
   previewSize = event.target.value.split("x")[0];
