@@ -490,8 +490,7 @@ function setCollectionsTable(arr) {
 
 loadConfig();
 const rareIconDB = "/rare-icon-db"; // require same-origin
-// const iconDB = "https://icon-db.pages.dev";
-const iconDB = "/icon-db";
+const iconDB = "https://icon-db.pages.dev";
 const worker = new Worker("worker.js");
 worker.addEventListener("message", (event) => {
   const pos = event.data;
