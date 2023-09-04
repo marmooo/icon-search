@@ -90,7 +90,9 @@
               <option>64x64</option>
               <option>128x128</option>
             </select>
-            <button title="toggle dark-mode" id="toggleDarkMode" class="fs-4 btn p-0 ms-1">🌓</button>
+            <button title="collections" class="fs-4 btn p-0 ms-1" type="button"
+              data-bs-toggle="offcanvas" data-bs-target="#collections" aria-controls="collections">📦</button>
+            <button title="toggle dark-mode" id="toggleDarkMode" class="fs-4 btn p-0 ms-1" type="button">🌓</button>
           </div>
         </div>
       </nav>
@@ -145,6 +147,28 @@
             </li>
           </ul>
         </nav>
+      </div>
+      <div id="collections" class="offcanvas offcanvas-end" tabindex="-1">
+        <div class="container overflow-scroll">
+          <div class="offcanvas-header pb-0">
+            <h5 class="offcanvas-title">Collections</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <h6>Recently Supported</h6>
+            <div id="recentlyCollections">
+              <table class="table table-striped">
+                <tbody>
+                  <tr><td></td><td></td></tr>
+                  <tr><td></td><td></td></tr>
+                  <tr><td></td><td></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <h6 class="pt-3">Supported icon sets</h6>
+            <div id="collectionsTable"></div>
+          </div>
+        </div>
       </div>
       <div id="details" class="offcanvas offcanvas-bottom" tabindex="-1">
         <div class="container">

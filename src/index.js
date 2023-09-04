@@ -80,6 +80,7 @@ function initCollections() {
         collections.set(iconSet.name, iconSet);
         delete iconSet.name;
       });
+      setCollectionsPanel();
     });
 }
 
@@ -451,6 +452,40 @@ function shuffle(array) {
     [array[k], array[i - 1]] = [array[i - 1], array[k]];
   }
   return array;
+}
+
+function setCollectionsPanel() {
+  const arr = Array.from(collections);
+  setRecentlyCollections(arr);
+  setCollectionsTable(arr);
+}
+
+function setRecentlyCollections(arr) {
+  let html = `<table class="table table-striped"><tbody>`;
+  arr.reverse().slice(0, 3).forEach(([name, iconSet]) => {
+    html += `
+      <tr>
+        <td><a href="${iconSet.homepage}">${name}</a></td>
+        <td><a class="ps-1" href="${iconSet.licenseUrl}">${iconSet.license}</a></td>
+      </tr>
+    `;
+  });
+  html += "</tbody></table>";
+  document.getElementById("recentlyCollections").innerHTML = html;
+}
+
+function setCollectionsTable(arr) {
+  let html = `<table class="table table-striped"><tbody>`;
+  arr.sort().forEach(([name, iconSet]) => {
+    html += `
+      <tr>
+        <td><a href="${iconSet.homepage}">${name}</a></td>
+        <td><a class="ps-1" href="${iconSet.licenseUrl}">${iconSet.license}</a></td>
+      </tr>
+    `;
+  });
+  html += "</tbody></table>";
+  document.getElementById("collectionsTable").innerHTML = html;
 }
 
 loadConfig();
