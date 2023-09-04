@@ -461,7 +461,7 @@ function setCollectionsPanel() {
 }
 
 function setRecentlyCollections(arr) {
-  let html = `<table class="table table-striped"><tbody>`;
+  let html = `<table class="table table-sm table-striped"><tbody>`;
   arr.reverse().slice(0, 3).forEach(([name, iconSet]) => {
     html += `
       <tr>
@@ -475,7 +475,7 @@ function setRecentlyCollections(arr) {
 }
 
 function setCollectionsTable(arr) {
-  let html = `<table class="table table-striped"><tbody>`;
+  let html = `<table class="table table-sm table-striped"><tbody>`;
   arr.sort().forEach(([name, iconSet]) => {
     html += `
       <tr>
