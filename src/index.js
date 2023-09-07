@@ -21,7 +21,7 @@ function toggleDarkMode() {
   }
 }
 
-function initSuggest(input, tags) {
+function initSuggest(input, tags, callback) {
   autocomplete({
     input: input,
     fetch: function (text, update) {
@@ -35,7 +35,7 @@ function initSuggest(input, tags) {
     },
     onSelect: function (item) {
       input.value = item;
-      searchIcons();
+      callback();
     },
     minLength: 1,
   });
@@ -90,7 +90,7 @@ function initSearchTags() {
     .then((response) => response.json())
     .then((json) => {
       searchTags = new Set(json);
-      initSuggest(searchText, json);
+      initSuggest(searchText, json, searchIcons);
     });
 }
 
@@ -285,7 +285,7 @@ function initFilterTags() {
     });
   });
   const filterText = document.getElementById("filterText");
-  initSuggest(filterText, [...filterTags]);
+  initSuggest(filterText, [...filterTags], filterResults);
 }
 
 function iconReader(reader, controller, tag) {
@@ -534,13 +534,7 @@ Promise.all([
 
 document.getElementById("toggleDarkMode").onclick = toggleDarkMode;
 document.getElementById("search").onclick = searchIcons;
-document.getElementById("searchText").onkeydown = (event) => {
-  if (event.key == "Enter") searchIcons();
-};
 document.getElementById("filter").onclick = filterResults;
-document.getElementById("filterText").onkeydown = (event) => {
-  if (event.key == "Enter") filterResults();
-};
 document.getElementById("download").onclick = downloadSVG;
 document.getElementById("clipboard").onclick = copyToClipboard;
 document.getElementById("pagingSize").onchange = (event) => {
