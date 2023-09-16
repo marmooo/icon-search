@@ -50,12 +50,12 @@ function initLightTags() {
       let n = 1;
       tags.forEach(([tag, pos]) => {
         let nextPos = prevPos + pos;
-        if (maxSize < nextPos) {
+        if (prevPos < maxSize) {
+          lightTags.set(tag, [prevPos, nextPos, n]);
+        } else {
           n += 1;
           nextPos = 2 + pos;
           lightTags.set(tag, [2, nextPos, n]);
-        } else {
-          lightTags.set(tag, [prevPos, nextPos, n]);
         }
         prevPos = nextPos + 2;
       });
