@@ -1,1 +1,1 @@
-self.addEventListener("message",a=>{const b=a.data;postMessage(b)})
+self.addEventListener("message",e=>{const t=e.data;postMessage(t)})
