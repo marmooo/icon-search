@@ -1,3 +1,6 @@
+import { Offcanvas } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/+esm";
+import autocompleter from "https://cdn.jsdelivr.net/npm/autocompleter@9.1.2/+esm";
+
 function loadConfig() {
   if (localStorage.getItem("darkMode") == 1) {
     document.documentElement.setAttribute("data-bs-theme", "dark");
@@ -22,7 +25,7 @@ function toggleDarkMode() {
 }
 
 function initSuggest(input, tags, callback) {
-  autocomplete({
+  autocompleter({
     input: input,
     fetch: function (text, update) {
       const suggestions = tags.filter((tag) => tag.startsWith(text));
@@ -518,7 +521,7 @@ let selectedIconPos;
 const iconTemplate = initIconTemplate(previewSize);
 if (searchParams.from) pagingFrom = parseInt(searchParams.from);
 if (searchParams.to) pagingTo = parseInt(searchParams.to);
-new bootstrap.Offcanvas(document.getElementById("details"));
+new Offcanvas(document.getElementById("details"));
 Promise.all([
   initSearchTags(),
   initCollections(),
