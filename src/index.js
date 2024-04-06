@@ -20,13 +20,32 @@ function toggleDarkMode() {
   } else {
     localStorage.setItem("darkMode", 1);
     document.documentElement.setAttribute("data-bs-theme", "dark");
-      document.documentElement.setAttribute("data-filter", "true");
+    document.documentElement.setAttribute("data-filter", "true");
   }
 }
 
-function initSuggest(input, tags, callback) {
+class AutocompleteBox extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+
+    const template = document.getElementById("autocomplete-box")
+      .content.cloneNode(true);
+    this.shadowRoot.appendChild(template);
+  }
+}
+customElements.define("autocomplete-box", AutocompleteBox);
+
+function initAutoCompleteBox() {
+  const box = new AutocompleteBox();
+  document.body.appendChild(box);
+  return box;
+}
+
+function initSuggest(box, input, tags, callback) {
   autocompleter({
     input: input,
+    container: box.shadowRoot.querySelector(".container"),
     fetch: function (text, update) {
       const suggestions = tags.filter((tag) => tag.startsWith(text));
       update(suggestions);
@@ -93,7 +112,7 @@ function initSearchTags() {
     .then((response) => response.json())
     .then((json) => {
       searchTags = new Set(json);
-      initSuggest(searchText, json, searchIcons);
+      initSuggest(searchAutocompleteBox, searchText, json, searchIcons);
     });
 }
 
@@ -288,7 +307,12 @@ function initFilterTags() {
     });
   });
   const filterText = document.getElementById("filterText");
-  initSuggest(filterText, [...filterTags], filterResults);
+  initSuggest(
+    filterAutocompleteBox,
+    filterText,
+    [...filterTags],
+    filterResults,
+  );
 }
 
 function iconReader(reader, controller, tag) {
@@ -494,6 +518,8 @@ function setCollectionsTable(arr) {
 loadConfig();
 const rareIconDB = "/rare-icon-db"; // require same-origin
 const iconDB = "https://icon-db.pages.dev";
+const searchAutocompleteBox = initAutoCompleteBox();
+const filterAutocompleteBox = initAutoCompleteBox();
 const worker = new Worker("worker.js");
 worker.addEventListener("message", (event) => {
   const pos = event.data;

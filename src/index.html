@@ -24,38 +24,7 @@
     <link rel="icon" type="image/svg+xml" href="/icon-search/favicon/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="/icon-search/favicon/apple-touch-icon.png">
     <link rel="manifest" href="/icon-search/favicon/site.webmanifest">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <style>
-/* https://github.com/kraaden/autocomplete/blob/master/autocomplete.css */
-.autocomplete {
-    color: var(--bs-body-color);
-    background: var(--bs-body-bg);
-    z-index: 1000;
-    font: 14px/22px "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    overflow: auto;
-    box-sizing: border-box;
-    border: 1px solid rgba(50, 50, 50, 0.6);
-}
-
-.autocomplete * {
-    font: inherit;
-}
-
-.autocomplete > div {
-    padding: 0 4px;
-}
-
-.autocomplete .group {
-    background: #eee;
-}
-
-.autocomplete > div:hover:not(.group),
-.autocomplete > div.selected {
-    color:black;
-    background: #81ca91;
-    cursor: pointer;
-}
-    </style>
+    <link class="drop-inline-css" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <style>
       #details { height:400px; }
       html[data-bs-theme="dark"][data-filter="true"] .favicon { filter: invert(1) hue-rotate(180deg); }
@@ -221,6 +190,10 @@
       <div class="text-muted">&copy; <a href="https://github.com/marmooo">marmooo</a>
       </div>
     </footer>
+    <template id="autocomplete-box">
+      <link class="inline-css" href="https://cdn.jsdelivr.net/npm/autocompleter@9.1.2/autocomplete.min.css" rel="stylesheet" crossorigin="anonymous">
+      <div><div class="container"></div></div>
+    </template>
     <div class="drop-inline-css
       offcanvas-backdrop fade show
       offcanvas showing hiding
