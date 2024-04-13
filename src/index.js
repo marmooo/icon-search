@@ -97,13 +97,6 @@ function initSearchTags() {
     });
 }
 
-function getSelectedIconPos(svg) {
-  const icons = [
-    ...document.getElementById("result").firstElementChild.children,
-  ];
-  return icons.indexOf(svg);
-}
-
 function showIconDetails(selectedImg) {
   const img = new Image(128, 128);
   img.setAttribute("decoding", "async");
@@ -134,15 +127,16 @@ function initIconTemplate(previewSize) {
   return img;
 }
 
-function getPreviewIcon(icon) {
+function getPreviewIcon(icon, pos) {
   const img = iconTemplate.cloneNode();
   const [svgText, iconTags, iconSetName] = icon;
   img.onclick = () => {
-    selectedIconPos = getSelectedIconPos(img);
+    selectedIconPos = Number(img.dataset.pos);
     showIconSetDetails(iconTags, iconSetName);
     showIconDetails(img);
   };
   img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgText);
+  img.dataset.pos = pos;
   return img;
 }
 
@@ -498,7 +492,7 @@ const worker = new Worker("worker.js");
 worker.addEventListener("message", (event) => {
   const pos = event.data;
   const icon = searchResults[pos];
-  const svg = getPreviewIcon(icon);
+  const svg = getPreviewIcon(icon, pos);
   document.getElementById("result").firstElementChild.appendChild(svg);
 });
 const searchParams = new Proxy(new URLSearchParams(location.search), {
