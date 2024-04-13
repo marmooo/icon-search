@@ -532,6 +532,13 @@ Promise.all([
 document.getElementById("toggleDarkMode").onclick = toggleDarkMode;
 document.getElementById("search").onclick = searchIcons;
 document.getElementById("filter").onclick = filterResults;
+document.getElementById("filterText").addEventListener("keydown", (event) => {
+  if (event.target.value == "" && event.key == "Enter") {
+    searchResults.slice(0, pagingSize).forEach((_icon, pos) => {
+      worker.postMessage(pos);
+    });
+  }
+});
 document.getElementById("download").onclick = downloadSVG;
 document.getElementById("clipboard").onclick = copyToClipboard;
 document.getElementById("pagingSize").onchange = (event) => {
