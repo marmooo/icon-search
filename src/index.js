@@ -155,7 +155,7 @@ function drawChunk(chunk) {
 function drawIcons(icons) {
   const prevLength = searchResults.length;
   // https://www.measurethat.net/Benchmarks/Show/4223
-  searchResults = [...searchResults, ...icons];
+  searchResults.push(...icons);
   if (pagingFrom <= prevLength + icons.length && prevLength < pagingTo) {
     const from = (pagingFrom < prevLength) ? prevLength : pagingFrom;
     const target = (pagingTo <= 0)
@@ -564,8 +564,8 @@ document.getElementById("previewSize").onchange = (event) => {
   iconTemplate.setAttribute("width", previewSize);
   iconTemplate.setAttribute("height", previewSize);
   const result = document.getElementById("result");
-  [...result.firstElementChild.children].forEach((svg) => {
+  for (const svg of result.firstElementchild.children) {
     svg.setAttribute("width", previewSize);
     svg.setAttribute("height", previewSize);
-  });
+  }
 };
