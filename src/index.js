@@ -188,13 +188,14 @@ function redrawIcons(from, to) {
   }
   const filterText = document.getElementById("filterText").value;
   if (filterText != "") {
-    searchResults.map((icon, pos) => {
-      if (icon[1].includes(filterText)) return [icon, pos];
-    }).filter((icon) => icon)
-      .slice(from, to).forEach((data) => {
-        const [_icon, pos] = data;
-        worker.postMessage(pos);
-      });
+    let count = 0;
+    for (let i = 0; i < searchResults.length; i++) {
+      const tags = searchResults[i][1];
+      if (!tags.includes(filterText)) continue;
+      count += 1;
+      if (from <= count) worker.postMessage(i);
+      if (to <= count) break;
+    }
   } else {
     const target = searchResults.slice(from, to);
     target.forEach((_icon, i) => {
@@ -396,13 +397,15 @@ function filterIcons(tag) {
   pagingTo = pagingSize;
   const url = `?q=${query}&from=0&to=${pagingSize}`;
   history.replaceState(null, null, url);
-  searchResults.map((icon, i) => {
-    if (icon[1].includes(tag)) return [icon, i];
-  }).filter((icon) => icon)
-    .slice(0, pagingSize).forEach((data) => {
-      const [_icon, pos] = data;
-      worker.postMessage(pos);
-    });
+
+  let count = 0;
+  for (let i = 0; i < searchResults.length; i++) {
+    const tags = searchResults[i][1];
+    if (!tags.includes(tag)) continue;
+    count += 1;
+    worker.postMessage(i);
+    if (pagingSize <= count) break;
+  }
 }
 
 function filterResults() {
