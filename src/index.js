@@ -25,7 +25,7 @@ function toggleDarkMode() {
 }
 
 function initSuggest(input, tags, callback) {
-  autocompleter({
+  return autocompleter({
     input: input,
     fetch: function (text, update) {
       const suggestions = tags.filter((tag) => tag.startsWith(text));
@@ -93,7 +93,8 @@ function initSearchTags() {
     .then((response) => response.json())
     .then((json) => {
       searchTags = new Set(json);
-      initSuggest(searchText, json, searchIcons);
+      if (searchSuggest) searchSuggest.destroy();
+      searchSuggest = initSuggest(searchText, json, searchIcons);
     });
 }
 
@@ -282,7 +283,8 @@ function initFilterTags() {
     });
   });
   const filterText = document.getElementById("filterText");
-  initSuggest(filterText, [...filterTags], filterResults);
+  if (filterSuggest) filterSuggest.destroy();
+  filterSuggest = initSuggest(filterText, [...filterTags], filterResults);
 }
 
 function iconReader(reader, controller, tag) {
@@ -512,6 +514,8 @@ let pagingSize = 300;
 let previewSize = 32;
 let prevSearchText = "";
 let selectedIconPos;
+let searchSuggest;
+let filterSuggest;
 const iconTemplate = initIconTemplate(previewSize);
 if (searchParams.from) pagingFrom = parseInt(searchParams.from);
 if (searchParams.to) pagingTo = parseInt(searchParams.to);
