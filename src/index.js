@@ -423,8 +423,7 @@ function sleep(msec) {
 }
 
 function getOriginalSVG() {
-  const pos = pagingFrom + selectedIconPos;
-  return searchResults[pos][0];
+  return searchResults[selectedIconPos][0];
 }
 
 async function copyToClipboard() {
