@@ -1,5 +1,5 @@
 import { Offcanvas } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/+esm";
-import autocompleter from "https://cdn.jsdelivr.net/npm/autocompleter@9.2.0/+esm";
+import autocompleter from "https://cdn.jsdelivr.net/npm/autocompleter@9.3.2/+esm";
 
 function loadConfig() {
   if (localStorage.getItem("darkMode") == 1) {
