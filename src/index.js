@@ -1,4 +1,4 @@
-import { Offcanvas } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/+esm";
+import { Offcanvas } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/+esm";
 import autocompleter from "https://cdn.jsdelivr.net/npm/autocompleter@9.3.2/+esm";
 
 function loadConfig() {
