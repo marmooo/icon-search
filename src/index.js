@@ -563,7 +563,7 @@ document.getElementById("previewSize").onchange = (event) => {
   iconTemplate.setAttribute("width", previewSize);
   iconTemplate.setAttribute("height", previewSize);
   const result = document.getElementById("result");
-  for (const svg of result.firstElementchild.children) {
+  for (const svg of result.firstElementChild.children) {
     svg.setAttribute("width", previewSize);
     svg.setAttribute("height", previewSize);
   }
