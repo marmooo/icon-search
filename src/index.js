@@ -163,17 +163,37 @@ function drawIcons(icons) {
       : searchResults.slice(from, pagingTo);
     target.forEach((_icon, i) => {
       const pos = from + i;
-      worker.postMessage(pos);
+      const icon = searchResults[pos];
+      const svg = getPreviewIcon(icon, pos);
+      pendingSVGs.push(svg);
     });
+    if (pendingSVGs.length) {
+      requestAnimationFrame(flushSVGs);
+    }
+  }
+}
+
+function flushSVGs() {
+  if (!pendingSVGs.length) return;
+  const chunkSize = 20;
+  const frag = document.createDocumentFragment();
+  let count = 0;
+  while (pendingSVGs.length && count < chunkSize) {
+    frag.appendChild(pendingSVGs.shift());
+    count++;
+  }
+  document.getElementById("result").firstElementChild.appendChild(frag);
+  if (pendingSVGs.length) {
+    requestAnimationFrame(flushSVGs);
   }
 }
 
 function redrawIcons(from, to) {
-  document.getElementById("loading").classList.remove("d-none");
+  const loading = document.getElementById("loading");
+  loading.classList.remove("d-none");
   const result = document.getElementById("result");
-  const div = document.createElement("div");
-  result.replaceChild(div, result.firstElementChild);
-
+  const newDiv = document.createElement("div");
+  result.replaceChild(newDiv, result.firstElementChild);
   const tag = document.getElementById("searchText").value;
   if (searchResults.length < pagingTo) {
     if (heavyTags.has(tag)) {
@@ -187,23 +207,31 @@ function redrawIcons(from, to) {
     }
   }
   const filterText = document.getElementById("filterText").value;
-  if (filterText != "") {
+  pendingSVGs.length = 0;
+  if (filterText !== "") {
     let count = 0;
     for (let i = 0; i < searchResults.length; i++) {
       const tags = searchResults[i][1];
       if (!tags.includes(filterText)) continue;
       count += 1;
-      if (from <= count) worker.postMessage(i);
+      if (from <= count && count <= to) {
+        const svg = getPreviewIcon(searchResults[i], i);
+        pendingSVGs.push(svg);
+      }
       if (to <= count) break;
     }
   } else {
     const target = searchResults.slice(from, to);
-    target.forEach((_icon, i) => {
+    target.forEach((icon, i) => {
       const pos = from + i;
-      worker.postMessage(pos);
+      const svg = getPreviewIcon(icon, pos);
+      pendingSVGs.push(svg);
     });
   }
-  document.getElementById("loading").classList.add("d-none");
+  if (pendingSVGs.length) {
+    requestAnimationFrame(flushSVGs);
+  }
+  loading.classList.add("d-none");
 }
 
 function disablePagination(obj, query) {
@@ -397,14 +425,18 @@ function filterIcons(tag) {
   pagingTo = pagingSize;
   const url = `?q=${query}&from=0&to=${pagingSize}`;
   history.replaceState(null, null, url);
-
   let count = 0;
   for (let i = 0; i < searchResults.length; i++) {
     const tags = searchResults[i][1];
     if (!tags.includes(tag)) continue;
+    const icon = searchResults[i];
+    const svg = getPreviewIcon(icon, i);
+    pendingSVGs.push(svg);
     count += 1;
-    worker.postMessage(i);
     if (pagingSize <= count) break;
+  }
+  if (pendingSVGs.length) {
+    requestAnimationFrame(flushSVGs);
   }
 }
 
@@ -492,16 +524,10 @@ function setCollectionsTable(arr) {
 loadConfig();
 const rareIconDB = "/rare-icon-db"; // require same-origin
 const iconDB = "https://icon-db.pages.dev";
-const worker = new Worker("worker.js");
-worker.addEventListener("message", (event) => {
-  const pos = event.data;
-  const icon = searchResults[pos];
-  const svg = getPreviewIcon(icon, pos);
-  document.getElementById("result").firstElementChild.appendChild(svg);
-});
 const searchParams = new Proxy(new URLSearchParams(location.search), {
   get: (params, prop) => params.get(prop),
 });
+const pendingSVGs = [];
 const collections = new Map();
 const heavyTags = new Map();
 const lightTags = new Map();
@@ -539,10 +565,22 @@ document.getElementById("toggleDarkMode").onclick = toggleDarkMode;
 document.getElementById("search").onclick = searchIcons;
 document.getElementById("filter").onclick = filterResults;
 document.getElementById("filterText").addEventListener("keydown", (event) => {
-  if (event.target.value == "" && event.key == "Enter") {
-    searchResults.slice(0, pagingSize).forEach((_icon, pos) => {
-      worker.postMessage(pos);
+  if (event.key !== "Enter") return;
+  const value = event.target.value;
+  const resultDiv = document.getElementById("result").firstElementChild;
+  const newDiv = document.createElement("div");
+  resultDiv.parentNode.replaceChild(newDiv, resultDiv);
+  pendingSVGs.length = 0;
+  if (value === "") {
+    searchResults.slice(0, pagingSize).forEach((icon, pos) => {
+      const svg = getPreviewIcon(icon, pos);
+      pendingSVGs.push(svg);
     });
+  } else {
+    filterIcons(value);
+  }
+  if (pendingSVGs.length) {
+    requestAnimationFrame(flushSVGs);
   }
 });
 document.getElementById("download").onclick = downloadSVG;
