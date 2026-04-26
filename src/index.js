@@ -1,26 +1,19 @@
 import { Offcanvas } from "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/+esm";
 import autocompleter from "https://cdn.jsdelivr.net/npm/autocompleter@9.3.2/+esm";
 
-function loadConfig() {
-  if (localStorage.getItem("darkMode") == 1) {
-    document.documentElement.setAttribute("data-bs-theme", "dark");
-    document.documentElement.setAttribute("data-filter", "false");
-  }
-}
-
 function toggleDarkMode() {
-  if (localStorage.getItem("darkMode") == 1) {
-    const filter = document.documentElement.getAttribute("data-filter");
-    if (filter == "true") {
-      document.documentElement.setAttribute("data-filter", "false");
-    } else {
-      localStorage.setItem("darkMode", 0);
-      document.documentElement.setAttribute("data-bs-theme", "light");
-    }
-  } else {
-    localStorage.setItem("darkMode", 1);
-    document.documentElement.setAttribute("data-bs-theme", "dark");
-    document.documentElement.setAttribute("data-filter", "true");
+  const html = document.documentElement;
+  const isDark = localStorage.getItem("darkMode") == 1;
+  const isFiltered = html.getAttribute("data-filter") === "true";
+  if (isDark && isFiltered) {
+    html.setAttribute("data-filter", "false");
+    return;
+  }
+  const nextDark = !isDark;
+  localStorage.setItem("darkMode", nextDark ? 1 : 0);
+  html.setAttribute("data-bs-theme", nextDark ? "dark" : "light");
+  if (nextDark) {
+    html.setAttribute("data-filter", "true");
   }
 }
 
@@ -521,7 +514,6 @@ function setCollectionsTable(arr) {
   document.getElementById("collectionsTable").innerHTML = html;
 }
 
-loadConfig();
 const rareIconDB = "/rare-icon-db"; // require same-origin
 const iconDB = "https://icon-db.pages.dev";
 const searchParams = new Proxy(new URLSearchParams(location.search), {
